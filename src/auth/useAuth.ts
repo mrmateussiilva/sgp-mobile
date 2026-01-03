@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { apiClient } from '../api/client'
 
 interface LoginCredentials {
-  email: string
+  username: string
   password: string
 }
 
