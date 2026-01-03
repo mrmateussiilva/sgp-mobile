@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Em desenvolvimento, usa o proxy do Vite (/api)
+// Em produção, usa a URL completa da API
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:8000/api')
 
 interface RequestOptions extends RequestInit {
   skipAuth?: boolean
@@ -15,9 +17,9 @@ class ApiClient {
   ): Promise<T> {
     const { skipAuth, ...fetchOptions } = options
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...fetchOptions.headers,
+      ...(fetchOptions.headers as Record<string, string>),
     }
 
     if (!skipAuth) {
