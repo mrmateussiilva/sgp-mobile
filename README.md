@@ -27,13 +27,18 @@ O app estará disponível em `http://localhost:3000`
 
 ## 🔧 Configuração
 
-A URL padrão da API é `http://localhost:8000/api`. 
+### API
 
-Se precisar alterar, configure no arquivo `.env`:
+A aplicação está configurada para usar um **proxy durante o desenvolvimento** que redireciona requisições de `/api` para `http://localhost:8000`. Isso evita problemas de CORS.
+
+- **Desenvolvimento**: As requisições vão para `/api` (proxy do Vite)
+- **Produção**: Configure a URL completa no arquivo `.env`:
 
 ```env
 VITE_API_URL=http://localhost:8000/api
 ```
+
+**Importante**: Certifique-se de que sua API está rodando em `http://localhost:8000` antes de iniciar o app.
 
 ## 📱 Funcionalidades
 
