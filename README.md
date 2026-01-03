@@ -29,13 +29,13 @@ O app estará disponível em `http://localhost:3000`
 
 ### API
 
-A aplicação está configurada para usar um **proxy durante o desenvolvimento** que redireciona requisições de `/api` para `http://localhost:8000`. Isso evita problemas de CORS.
+A aplicação está configurada para usar um **proxy durante o desenvolvimento** que redireciona requisições de `/api` para `http://localhost:8000` (removendo o prefixo `/api`). Isso evita problemas de CORS.
 
-- **Desenvolvimento**: As requisições vão para `/api` (proxy do Vite)
+- **Desenvolvimento**: As requisições vão para `/api` (proxy do Vite remove o prefixo e redireciona para `http://localhost:8000`)
 - **Produção**: Configure a URL completa no arquivo `.env`:
 
 ```env
-VITE_API_URL=http://localhost:8000/api
+VITE_API_URL=http://localhost:8000
 ```
 
 **Importante**: Certifique-se de que sua API está rodando em `http://localhost:8000` antes de iniciar o app.
