@@ -35,10 +35,20 @@ export const useAuth = () => {
         { skipAuth: true }
       )
 
-      if (response.token) {
-        localStorage.setItem('token', response.token)
+      // Aceita token direto ou dentro de response.token
+      const token = response.token || (response as any).access_token || (response as any).data?.token
+      
+      if (token) {
+        localStorage.setItem('token', token)
         setIsAuthenticated(true)
-        navigate('/dashboard')
+        // Dispara evento customizado para notificar mudança de autenticação
+        window.dispatchEvent(new Event('auth-change'))
+        // Força navegação mesmo se o PrivateRoute ainda não atualizou
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true })
+        }, 100)
+      } else {
+        throw new Error('Token não encontrado na resposta da API')
       }
     } catch (error) {
       throw error

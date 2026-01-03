@@ -9,8 +9,35 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    setIsAuthenticated(!!token)
+    const checkAuth = () => {
+      const token = localStorage.getItem('token')
+      setIsAuthenticated(!!token)
+    }
+
+    // Verifica imediatamente
+    checkAuth()
+
+    // Escuta mudanças no localStorage (outras abas)
+    const handleStorageChange = () => {
+      checkAuth()
+    }
+
+    // Escuta evento customizado de mudança de autenticação (mesma aba)
+    const handleAuthChange = () => {
+      checkAuth()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('auth-change', handleAuthChange)
+    
+    // Polling para detectar mudanças no mesmo tab (fallback)
+    const interval = setInterval(checkAuth, 500)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('auth-change', handleAuthChange)
+      clearInterval(interval)
+    }
   }, [])
 
   if (isAuthenticated === null) {
