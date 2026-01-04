@@ -56,8 +56,6 @@ export const useAuth = () => {
           navigate('/dashboard', { replace: true })
         }, 100)
       } else {
-        // Log para debug - remover em produção
-        console.error('Resposta da API:', response)
         throw new Error('Token não encontrado na resposta da API. Verifique o formato da resposta.')
       }
     } catch (error) {
