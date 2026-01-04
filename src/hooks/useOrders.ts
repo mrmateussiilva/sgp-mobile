@@ -25,7 +25,7 @@ export const useOrders = () => {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiClient.get<Order[]>('/api/pedidos')
+      const data = await apiClient.get<Order[]>('/pedidos')
       setOrders(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar pedidos')
@@ -40,7 +40,7 @@ export const useOrders = () => {
 
   const updateOrderStatus = async (orderId: string, status: Order['status']): Promise<void> => {
     try {
-      await apiClient.patch(`/api/pedidos/${orderId}/status`, { status })
+      await apiClient.patch(`/pedidos/${orderId}/status`, { status })
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === orderId ? { ...order, status } : order
@@ -53,7 +53,7 @@ export const useOrders = () => {
 
   const getOrderById = async (orderId: string): Promise<Order> => {
     try {
-      const order = await apiClient.get<Order>(`/api/pedidos/${orderId}`)
+      const order = await apiClient.get<Order>(`/pedidos/${orderId}`)
       return order
     } catch (err) {
       throw err instanceof Error ? err : new Error('Erro ao carregar pedido')

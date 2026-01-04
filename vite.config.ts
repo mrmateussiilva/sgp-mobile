@@ -52,7 +52,7 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
-        // Mantém o /api no path, pois a API espera /api/pedidos
+        rewrite: (path) => path.replace(/^\/api/, ''),
       }
     }
   }
