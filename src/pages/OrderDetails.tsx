@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useOrders, Order } from '../hooks/useOrders'
+import { useOrders, Order, OrderStatus } from '../hooks/useOrders'
 import { StatusBadge } from '../components/StatusBadge'
 import { BottomNav } from '../components/BottomNav'
 
-const statusOptions: Order['status'][] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
+const statusOptions: OrderStatus[] = ['pendente', 'em_producao', 'pronto', 'entregue', 'cancelado']
 
-const statusLabels: Record<Order['status'], string> = {
-  pending: 'Pendente',
-  processing: 'Em Processamento',
-  shipped: 'Enviado',
-  delivered: 'Entregue',
-  cancelled: 'Cancelado',
+const statusLabels: Record<OrderStatus, string> = {
+  pendente: 'Pendente',
+  em_producao: 'Em Produção',
+  pronto: 'Pronto',
+  entregue: 'Entregue',
+  cancelado: 'Cancelado',
 }
 
 export const OrderDetails = () => {
@@ -28,7 +28,11 @@ export const OrderDetails = () => {
       if (!id) return
       try {
         setLoading(true)
-        const orderData = await getOrderById(id)
+        const orderId = parseInt(id, 10)
+        if (isNaN(orderId)) {
+          throw new Error('ID do pedido inválido')
+        }
+        const orderData = await getOrderById(orderId)
         setOrder(orderData)
       } catch (error) {
         setMessage({
@@ -43,13 +47,17 @@ export const OrderDetails = () => {
     loadOrder()
   }, [id, getOrderById])
 
-  const handleStatusChange = async (newStatus: Order['status']) => {
+  const handleStatusChange = async (newStatus: OrderStatus) => {
     if (!order || !id) return
 
     try {
       setUpdating(true)
       setMessage(null)
-      await updateOrderStatus(id, newStatus)
+      const orderId = parseInt(id, 10)
+      if (isNaN(orderId)) {
+        throw new Error('ID do pedido inválido')
+      }
+      await updateOrderStatus(orderId, newStatus)
       setOrder({ ...order, status: newStatus })
       setMessage({ type: 'success', text: 'Status atualizado com sucesso!' })
       
@@ -64,7 +72,8 @@ export const OrderDetails = () => {
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Não definida'
     const date = new Date(dateString)
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -73,12 +82,14 @@ export const OrderDetails = () => {
     })
   }
 
-  const formatCurrency = (value?: number) => {
+  const formatCurrency = (value?: string | null) => {
     if (!value) return 'N/A'
+    const numValue = parseFloat(value)
+    if (isNaN(numValue)) return value
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(value)
+    }).format(numValue)
   }
 
   if (loading) {
@@ -106,11 +117,14 @@ export const OrderDetails = () => {
   }
 
   const isOverdue = () => {
-    const deliveryDate = new Date(order.deliveryDate)
+    if (!order.data_entrega) return false
+    const deliveryDate = new Date(order.data_entrega)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    return deliveryDate < today && order.status !== 'delivered' && order.status !== 'cancelled'
+    return deliveryDate < today && order.status !== 'entregue' && order.status !== 'cancelado'
   }
+
+  const displayId = order.numero || `#${order.id}`
 
   return (
     <div className="min-h-screen pb-20">
@@ -144,8 +158,8 @@ export const OrderDetails = () => {
         <div className="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-200">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Pedido #{order.id}</h2>
-              <p className="text-sm text-gray-600 mt-1">{order.customerName}</p>
+              <h2 className="text-lg font-bold text-gray-900">Pedido {displayId}</h2>
+              <p className="text-sm text-gray-600 mt-1">{order.cliente}</p>
             </div>
             <StatusBadge status={order.status} />
           </div>
@@ -154,7 +168,7 @@ export const OrderDetails = () => {
             <div>
               <p className="text-xs text-gray-600 mb-1">Data de Entrega</p>
               <p className={`text-sm font-medium ${isOverdue() ? 'text-red-600' : 'text-gray-900'}`}>
-                {formatDate(order.deliveryDate)}
+                {formatDate(order.data_entrega)}
                 {isOverdue() && (
                   <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">
                     Atrasado
@@ -163,15 +177,17 @@ export const OrderDetails = () => {
               </p>
             </div>
 
-            <div>
-              <p className="text-xs text-gray-600 mb-1">Cidade</p>
-              <p className="text-sm font-medium text-gray-900">{order.city}</p>
-            </div>
+            {order.cidade_cliente && (
+              <div>
+                <p className="text-xs text-gray-600 mb-1">Cidade</p>
+                <p className="text-sm font-medium text-gray-900">{order.cidade_cliente}</p>
+              </div>
+            )}
 
-            {order.total && (
+            {order.valor_total && (
               <div>
                 <p className="text-xs text-gray-600 mb-1">Total</p>
-                <p className="text-sm font-medium text-gray-900">{formatCurrency(order.total)}</p>
+                <p className="text-sm font-medium text-gray-900">{formatCurrency(order.valor_total)}</p>
               </div>
             )}
           </div>
@@ -203,15 +219,11 @@ export const OrderDetails = () => {
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Itens</h3>
             <div className="space-y-2">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+              {order.items.map((item, index) => (
+                <div key={item.id || index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                    <p className="text-xs text-gray-600">Qtd: {item.quantity}</p>
+                    <p className="text-sm font-medium text-gray-900">{item.descricao || 'Item sem descrição'}</p>
                   </div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {formatCurrency(item.price * item.quantity)}
-                  </p>
                 </div>
               ))}
             </div>

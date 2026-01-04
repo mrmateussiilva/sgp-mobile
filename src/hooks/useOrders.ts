@@ -1,19 +1,28 @@
 import { useState, useEffect } from 'react'
 import { apiClient } from '../api/client'
 
+// Status conforme a documentação da API
+export type OrderStatus = 'pendente' | 'em_producao' | 'pronto' | 'entregue' | 'cancelado'
+
 export interface Order {
-  id: string
-  customerName: string
-  deliveryDate: string
-  city: string
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-  total?: number
+  id: number
+  numero?: string | null
+  cliente: string
+  data_entrega?: string | null
+  cidade_cliente?: string | null
+  status: OrderStatus
+  valor_total?: string | null
+  valor_frete?: string | null
+  valor_itens?: string | null
+  telefone_cliente?: string | null
+  estado_cliente?: string | null
   items?: Array<{
-    id: string
-    name: string
-    quantity: number
-    price: number
+    id?: number | null
+    descricao?: string | null
+    [key: string]: any
   }>
+  data_criacao: string
+  ultima_atualizacao: string
 }
 
 export const useOrders = () => {
@@ -25,7 +34,8 @@ export const useOrders = () => {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiClient.get<Order[]>('/pedidos')
+      // A API aceita query params: skip, limit, status, cliente, data_inicio, data_fim
+      const data = await apiClient.get<Order[]>('/pedidos/')
       setOrders(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar pedidos')
@@ -38,9 +48,10 @@ export const useOrders = () => {
     fetchOrders()
   }, [])
 
-  const updateOrderStatus = async (orderId: string, status: Order['status']): Promise<void> => {
+  // Ajustar: usar PATCH /pedidos/{id} com status no body (não /status)
+  const updateOrderStatus = async (orderId: number, status: OrderStatus): Promise<void> => {
     try {
-      await apiClient.patch(`/pedidos/${orderId}/status`, { status })
+      await apiClient.patch(`/pedidos/${orderId}`, { status })
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === orderId ? { ...order, status } : order
@@ -51,7 +62,7 @@ export const useOrders = () => {
     }
   }
 
-  const getOrderById = async (orderId: string): Promise<Order> => {
+  const getOrderById = async (orderId: number): Promise<Order> => {
     try {
       const order = await apiClient.get<Order>(`/pedidos/${orderId}`)
       return order

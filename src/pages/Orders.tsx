@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react'
-import { useOrders, Order } from '../hooks/useOrders'
+import { useOrders, Order, OrderStatus } from '../hooks/useOrders'
 import { OrderCard } from '../components/OrderCard'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../auth/useAuth'
 
-type StatusFilter = 'all' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'overdue'
+type StatusFilter = 'all' | OrderStatus | 'overdue'
 
 export const Orders = () => {
   const { orders, loading, fetchOrders } = useOrders()
@@ -20,10 +20,11 @@ export const Orders = () => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       filtered = filtered.filter(order => {
-        const deliveryDate = new Date(order.deliveryDate)
+        if (!order.data_entrega) return false
+        const deliveryDate = new Date(order.data_entrega)
         return deliveryDate < today && 
-               order.status !== 'delivered' && 
-               order.status !== 'cancelled'
+               order.status !== 'entregue' && 
+               order.status !== 'cancelado'
       })
     } else if (statusFilter !== 'all') {
       filtered = filtered.filter(order => order.status === statusFilter)
@@ -33,14 +34,17 @@ export const Orders = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       filtered = filtered.filter(order =>
-        order.customerName.toLowerCase().includes(term) ||
-        order.id.toLowerCase().includes(term)
+        order.cliente.toLowerCase().includes(term) ||
+        order.numero?.toLowerCase().includes(term) ||
+        order.id.toString().includes(term)
       )
     }
 
-    return filtered.sort((a, b) => 
-      new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime()
-    )
+    return filtered.sort((a, b) => {
+      const dateA = a.data_entrega ? new Date(a.data_entrega).getTime() : 0
+      const dateB = b.data_entrega ? new Date(b.data_entrega).getTime() : 0
+      return dateB - dateA
+    })
   }, [orders, statusFilter, searchTerm])
 
   return (
@@ -83,7 +87,7 @@ export const Orders = () => {
         {/* Filtros */}
         <div className="mb-4 overflow-x-auto">
           <div className="flex gap-2 pb-2">
-            {(['all', 'pending', 'overdue', 'processing', 'shipped', 'delivered'] as StatusFilter[]).map((status) => (
+            {(['all', 'pendente', 'overdue', 'em_producao', 'pronto', 'entregue'] as StatusFilter[]).map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
@@ -94,10 +98,10 @@ export const Orders = () => {
                 }`}
               >
                 {status === 'all' ? 'Todos' :
-                 status === 'pending' ? 'Pendentes' :
+                 status === 'pendente' ? 'Pendentes' :
                  status === 'overdue' ? 'Atrasados' :
-                 status === 'processing' ? 'Processando' :
-                 status === 'shipped' ? 'Enviados' :
+                 status === 'em_producao' ? 'Em Produção' :
+                 status === 'pronto' ? 'Pronto' :
                  'Entregues'}
               </button>
             ))}

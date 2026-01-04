@@ -6,7 +6,15 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL
   }
   // Em desenvolvimento, usa proxy relativo
-  if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
+  // Verifica múltiplas formas de detectar desenvolvimento
+  const isDev = 
+    import.meta.env.DEV || 
+    import.meta.env.MODE === 'development' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  
+  if (isDev) {
+    console.log('Using proxy in development mode')
     return '/api'
   }
   // Em produção, usa URL completa
@@ -44,12 +52,10 @@ class ApiClient {
 
     // Garante que o endpoint comece com /
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
-    const url = `${API_BASE_URL}${normalizedEndpoint}`
     
-    // Debug temporário - remover em produção
-    if (import.meta.env.DEV) {
-      console.log('API Request:', { url, baseUrl: API_BASE_URL, endpoint: normalizedEndpoint })
-    }
+    // Constrói a URL - se baseUrl já termina com /, não adiciona outro
+    const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL
+    const url = `${baseUrl}${normalizedEndpoint}`
 
     try {
       const response = await fetch(url, {

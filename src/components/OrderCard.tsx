@@ -9,7 +9,8 @@ interface OrderCardProps {
 export const OrderCard = ({ order }: OrderCardProps) => {
   const navigate = useNavigate()
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Não definida'
     const date = new Date(dateString)
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -19,11 +20,14 @@ export const OrderCard = ({ order }: OrderCardProps) => {
   }
 
   const isOverdue = () => {
-    const deliveryDate = new Date(order.deliveryDate)
+    if (!order.data_entrega) return false
+    const deliveryDate = new Date(order.data_entrega)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    return deliveryDate < today && order.status !== 'delivered' && order.status !== 'cancelled'
+    return deliveryDate < today && order.status !== 'entregue' && order.status !== 'cancelado'
   }
+
+  const displayId = order.numero || `#${order.id}`
 
   return (
     <div
@@ -32,8 +36,8 @@ export const OrderCard = ({ order }: OrderCardProps) => {
     >
       <div className="flex justify-between items-start mb-2">
         <div>
-          <h3 className="font-semibold text-gray-900">Pedido #{order.id}</h3>
-          <p className="text-sm text-gray-600 mt-1">{order.customerName}</p>
+          <h3 className="font-semibold text-gray-900">Pedido {displayId}</h3>
+          <p className="text-sm text-gray-600 mt-1">{order.cliente}</p>
         </div>
         <StatusBadge status={order.status} />
       </div>
@@ -42,7 +46,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
         <div className="flex items-center text-sm text-gray-600">
           <span className="font-medium mr-2">Entrega:</span>
           <span className={isOverdue() ? 'text-red-600 font-semibold' : ''}>
-            {formatDate(order.deliveryDate)}
+            {formatDate(order.data_entrega)}
           </span>
           {isOverdue() && (
             <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">
@@ -50,10 +54,12 @@ export const OrderCard = ({ order }: OrderCardProps) => {
             </span>
           )}
         </div>
-        <div className="flex items-center text-sm text-gray-600">
-          <span className="font-medium mr-2">Cidade:</span>
-          <span>{order.city}</span>
-        </div>
+        {order.cidade_cliente && (
+          <div className="flex items-center text-sm text-gray-600">
+            <span className="font-medium mr-2">Cidade:</span>
+            <span>{order.cidade_cliente}</span>
+          </div>
+        )}
       </div>
     </div>
   )

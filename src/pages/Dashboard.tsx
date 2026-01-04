@@ -10,15 +10,16 @@ export const Dashboard = () => {
 
   const stats = useMemo(() => {
     const total = orders.length
-    const pending = orders.filter(o => o.status === 'pending').length
+    const pending = orders.filter(o => o.status === 'pendente').length
     
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const overdue = orders.filter(order => {
-      const deliveryDate = new Date(order.deliveryDate)
+      if (!order.data_entrega) return false
+      const deliveryDate = new Date(order.data_entrega)
       return deliveryDate < today && 
-             order.status !== 'delivered' && 
-             order.status !== 'cancelled'
+             order.status !== 'entregue' && 
+             order.status !== 'cancelado'
     }).length
 
     return { total, pending, overdue }
@@ -26,7 +27,11 @@ export const Dashboard = () => {
 
   const recentOrders = useMemo(() => {
     return orders
-      .sort((a, b) => new Date(b.deliveryDate).getTime() - new Date(a.deliveryDate).getTime())
+      .sort((a, b) => {
+        const dateA = a.data_entrega ? new Date(a.data_entrega).getTime() : 0
+        const dateB = b.data_entrega ? new Date(b.data_entrega).getTime() : 0
+        return dateB - dateA
+      })
       .slice(0, 5)
   }, [orders])
 
