@@ -12,7 +12,7 @@ export default defineConfig({
         name: 'SGP Mobile',
         short_name: 'SGP',
         description: 'PWA administrativo para gestão de pedidos',
-        theme_color: '#3b82f6',
+        theme_color: '#2563eb', // Cor primária do sistema de design (HSL: 221.2 83.2% 53.3%)
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
