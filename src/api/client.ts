@@ -1,6 +1,7 @@
 // Em desenvolvimento, usa o proxy do Vite (/api)
 // Em produção, usa a URL completa da API
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:8000')
+// Nota: As rotas já incluem /api (ex: /api/pedidos), então a base é vazia em dev
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : 'http://localhost:8000')
 
 interface RequestOptions extends RequestInit {
   skipAuth?: boolean
