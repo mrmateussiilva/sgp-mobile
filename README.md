@@ -48,7 +48,11 @@ VITE_API_URL=http://localhost:8000
 - ✅ Busca por nome ou ID
 - ✅ Detalhes do pedido
 - ✅ Atualização de status
-- ✅ PWA instalável
+- ✅ Relatórios (Envio, Fechamento, Vendas, Clientes, Produtos)
+- ✅ Área Administrativa (Usuários, Configurações, Backup, Logs, Sistema)
+- ✅ PWA instalável com Service Worker
+- ✅ Funcionamento offline
+- ✅ Atualizações automáticas
 
 ## 🏗️ Estrutura
 
@@ -61,12 +65,65 @@ src/
  └─ hooks/        # Hooks customizados
 ```
 
-## 📱 Ícones PWA
+## 📱 PWA - Progressive Web App
 
-Para gerar os ícones PWA (192x192 e 512x512), você pode:
+### Ícones PWA
 
-1. Usar uma ferramenta online como [PWA Asset Generator](https://github.com/onderceylan/pwa-asset-generator)
-2. Criar manualmente e salvar em `public/pwa-192x192.png` e `public/pwa-512x512.png`
+Os ícones PWA são gerados automaticamente a partir do arquivo `public/icon.svg`. Para regenerar os ícones:
 
-O app funcionará sem os ícones, mas eles são recomendados para uma melhor experiência PWA.
+```bash
+pnpm run generate-icons
+```
+
+Isso gerará:
+- `pwa-192x192.png` (192x192 pixels)
+- `pwa-512x512.png` (512x512 pixels)
+- `apple-touch-icon.png` (180x180 pixels para iOS)
+
+### Build de Produção
+
+Para gerar o build de produção:
+
+```bash
+pnpm run build
+```
+
+O build será gerado na pasta `dist/`.
+
+Para testar o build localmente:
+
+```bash
+pnpm run preview
+```
+
+### Configuração de Produção
+
+1. Copie o arquivo `.env.production.example` para `.env.production`:
+   ```bash
+   cp .env.production.example .env.production
+   ```
+
+2. Configure a URL da sua API no arquivo `.env.production`:
+   ```env
+   VITE_API_URL=https://sua-api.com
+   ```
+
+3. Faça o build:
+   ```bash
+   pnpm run build
+   ```
+
+### Requisitos para PWA
+
+- ✅ **HTTPS**: Em produção, o PWA requer HTTPS (exceto localhost)
+- ✅ **Service Worker**: Configurado automaticamente pelo `vite-plugin-pwa`
+- ✅ **Manifest**: Gerado automaticamente durante o build
+- ✅ **Ícones**: Gerados a partir do SVG em `public/icon.svg`
+
+### Instalação no Dispositivo
+
+O PWA pode ser instalado em:
+- **Android**: Chrome mostrará prompt de instalação
+- **iOS**: Compartilhar → Adicionar à Tela de Início
+- **Desktop**: Chrome/Edge mostrará ícone de instalação na barra de endereços
 
