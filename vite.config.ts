@@ -52,17 +52,7 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
-        ws: false,
-        rewrite: (path) => {
-          const newPath = path.replace(/^\/api/, '')
-          console.log('Proxy rewrite:', path, '->', newPath)
-          return newPath
-        },
-        configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('Proxy intercepting:', req.method, req.url)
-          })
-        }
+        rewrite: (path) => path.replace(/^\/api/, ''),
       }
     }
   }
