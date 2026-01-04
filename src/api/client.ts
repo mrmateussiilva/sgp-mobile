@@ -1,7 +1,13 @@
 // Em desenvolvimento, usa o proxy do Vite (/api)
 // Em produção, usa a URL completa da API
 // O proxy remove o /api e redireciona para localhost:8000
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
+  // Primeiro, verifica se há URL customizada no localStorage
+  const customUrl = localStorage.getItem('api_url')
+  if (customUrl) {
+    return customUrl
+  }
+  
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL
   }
@@ -31,6 +37,10 @@ class ApiClient {
     return localStorage.getItem('token')
   }
 
+  private getBaseUrl(): string {
+    return getApiBaseUrl()
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestOptions = {}
@@ -52,9 +62,10 @@ class ApiClient {
     // Garante que o endpoint comece com /
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
     
-    // Constrói a URL - se baseUrl já termina com /, não adiciona outro
-    const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL
-    const url = `${baseUrl}${normalizedEndpoint}`
+    // Constrói a URL - sempre obtém a URL atual (pode ter mudado)
+    const baseUrl = this.getBaseUrl()
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+    const url = `${normalizedBaseUrl}${normalizedEndpoint}`
 
     try {
       const response = await fetch(url, {

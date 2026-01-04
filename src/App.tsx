@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
@@ -6,6 +6,8 @@ import { Orders } from './pages/Orders'
 import { OrderDetails } from './pages/OrderDetails'
 import { Reports } from './pages/Reports'
 import { Admin } from './pages/Admin'
+import { ApiConnectionFallback } from './pages/ApiConnectionFallback'
+import { useApiConnection } from './hooks/useApiConnection'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -44,8 +46,8 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Carregando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Carregando...</p>
       </div>
     )
   }
@@ -53,16 +55,23 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
 
-function App() {
+const AppContent = () => {
+  const location = useLocation()
+  const { isOnline, isChecking } = useApiConnection()
+  
+  // Mostra fallback apenas se:
+  // 1. Não estiver verificando (já tentou conectar)
+  // 2. Está offline
+  // 3. Não está na tela de login (permite tentar fazer login mesmo offline inicialmente)
+  const shouldShowFallback = !isChecking && isOnline === false && location.pathname !== '/login'
+  
+  if (shouldShowFallback) {
+    return <ApiConnectionFallback />
+  }
+  
   return (
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
-      <Routes>
-        <Route path="/login" element={<Login />} />
+    <Routes>
+      <Route path="/login" element={<Login />} />
         <Route
           path="/dashboard"
           element={
@@ -105,6 +114,18 @@ function App() {
         />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <AppContent />
     </BrowserRouter>
   )
 }
