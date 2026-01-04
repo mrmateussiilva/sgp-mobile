@@ -57,6 +57,18 @@ class ApiClient {
     const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL
     const url = `${baseUrl}${normalizedEndpoint}`
 
+    // Log em desenvolvimento para debug
+    if (import.meta.env.DEV) {
+      const token = this.getToken()
+      console.log('API Request:', {
+        url,
+        method: fetchOptions.method || 'GET',
+        hasToken: !!token,
+        tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
+        skipAuth
+      })
+    }
+
     try {
       const response = await fetch(url, {
         ...fetchOptions,
@@ -70,8 +82,32 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Erro na requisição' }))
-        throw new Error(error.message || `Erro ${response.status}`)
+        let errorMessage = `Erro ${response.status}`
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.detail || errorData.message || errorMessage
+          // Log detalhado em desenvolvimento
+          if (import.meta.env.DEV) {
+            console.error('API Error:', {
+              status: response.status,
+              statusText: response.statusText,
+              url,
+              error: errorData,
+              hasToken: !!this.getToken()
+            })
+          }
+        } catch {
+          // Se não conseguir parsear JSON, usa a mensagem padrão
+          if (import.meta.env.DEV) {
+            console.error('API Error (no JSON):', {
+              status: response.status,
+              statusText: response.statusText,
+              url,
+              hasToken: !!this.getToken()
+            })
+          }
+        }
+        throw new Error(errorMessage)
       }
 
       return await response.json()
