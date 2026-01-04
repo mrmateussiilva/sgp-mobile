@@ -29,14 +29,22 @@ export const useAuth = () => {
 
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
-      const response = await apiClient.post<AuthResponse>(
+      const response = await apiClient.post<any>(
         '/auth/login',
         credentials,
         { skipAuth: true }
       )
 
-      // Aceita token direto ou dentro de response.token
-      const token = response.token || (response as any).access_token || (response as any).data?.token
+      // Tenta diferentes formatos de resposta da API
+      const token = 
+        response.session_token ||
+        response.token || 
+        response.access_token || 
+        response.accessToken ||
+        response.data?.token ||
+        response.data?.access_token ||
+        response.data?.session_token ||
+        (typeof response === 'string' ? response : null)
       
       if (token) {
         localStorage.setItem('token', token)
@@ -48,7 +56,9 @@ export const useAuth = () => {
           navigate('/dashboard', { replace: true })
         }, 100)
       } else {
-        throw new Error('Token não encontrado na resposta da API')
+        // Log para debug - remover em produção
+        console.error('Resposta da API:', response)
+        throw new Error('Token não encontrado na resposta da API. Verifique o formato da resposta.')
       }
     } catch (error) {
       throw error
