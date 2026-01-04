@@ -4,6 +4,8 @@ import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Orders } from './pages/Orders'
 import { OrderDetails } from './pages/OrderDetails'
+import { Reports } from './pages/Reports'
+import { Admin } from './pages/Admin'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -82,6 +84,22 @@ function App() {
           element={
             <PrivateRoute>
               <OrderDetails />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <PrivateRoute>
+              <Reports />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <Admin />
             </PrivateRoute>
           }
         />
