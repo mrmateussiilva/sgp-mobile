@@ -52,7 +52,11 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => {
+          const newPath = path.replace(/^\/api/, '')
+          console.log('Proxy rewrite:', path, '->', newPath)
+          return newPath
+        },
       }
     }
   }
