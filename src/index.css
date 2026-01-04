@@ -16,3 +16,18 @@ body {
   background-color: #f3f4f6;
 }
 
+/* Esconder scrollbar mas manter funcionalidade */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area para dispositivos com notch */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
