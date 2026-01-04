@@ -48,29 +48,29 @@ export const Orders = () => {
   }, [orders, statusFilter, searchTerm])
 
   return (
-    <div className="min-h-screen pb-24 bg-gray-50">
-      <header className="bg-white shadow-md sticky top-0 z-40">
-        <div className="px-4 py-5 flex justify-between items-center">
+    <div className="min-h-screen pb-28 bg-background">
+      <header className="bg-card shadow-sm sticky top-0 z-40 border-b border-border">
+        <div className="px-4 py-4 flex justify-between items-center max-w-7xl mx-auto">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Pedidos</h1>
-            <p className="text-sm text-gray-500 mt-1">Gerencie todos os pedidos</p>
+            <h1 className="text-xl font-bold text-foreground">Pedidos</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Gerencie todos os pedidos</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={fetchOrders}
-              className="p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+              className="p-2.5 text-muted-foreground hover:bg-accent rounded-lg transition-colors active:bg-accent"
               title="Atualizar lista"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
             <button
               onClick={logout}
-              className="p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+              className="p-2.5 text-muted-foreground hover:bg-accent rounded-lg transition-colors active:bg-accent"
               title="Sair"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>
@@ -78,12 +78,12 @@ export const Orders = () => {
         </div>
       </header>
 
-      <main className="px-4 py-6">
+      <main className="px-4 py-5 max-w-7xl mx-auto">
         {/* Busca */}
-        <div className="mb-5">
+        <div className="mb-4">
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -92,23 +92,22 @@ export const Orders = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por cliente, número ou ID..."
-              className="w-full pl-12 pr-4 py-4 text-base border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className="w-full pl-10 pr-4 py-3 text-sm border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground"
             />
           </div>
         </div>
 
         {/* Filtros */}
-        <div className="mb-6">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Filtrar por status:</p>
+        <div className="mb-4">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {(['all', 'pendente', 'overdue', 'em_producao', 'pronto', 'entregue'] as StatusFilter[]).map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-5 py-3 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
+                className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                   statusFilter === status
-                    ? 'bg-blue-600 text-white shadow-lg transform scale-105'
-                    : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-300 hover:bg-blue-50'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent'
                 }`}
               >
                 {status === 'all' ? '📋 Todos' :
@@ -124,17 +123,17 @@ export const Orders = () => {
 
         {/* Lista de pedidos */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-gray-600 font-medium">Carregando pedidos...</p>
+          <div className="text-center py-16">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent mb-3"></div>
+            <p className="text-sm text-muted-foreground">Carregando pedidos...</p>
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="text-center py-16 bg-card rounded-lg shadow-elevation border border-border">
+            <svg className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="text-gray-600 font-medium mb-1">Nenhum pedido encontrado</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm font-medium text-foreground mb-1">Nenhum pedido encontrado</p>
+            <p className="text-xs text-muted-foreground">
               {searchTerm || statusFilter !== 'all' 
                 ? 'Tente ajustar os filtros de busca' 
                 : 'Não há pedidos cadastrados ainda'}
@@ -142,14 +141,16 @@ export const Orders = () => {
           </div>
         ) : (
           <div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-4">
-              <p className="text-sm font-semibold text-blue-900">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 mb-3">
+              <p className="text-xs font-semibold text-primary">
                 📊 {filteredOrders.length} {filteredOrders.length === 1 ? 'pedido encontrado' : 'pedidos encontrados'}
               </p>
             </div>
-            {filteredOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))}
+            <div className="space-y-3">
+              {filteredOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+            </div>
           </div>
         )}
       </main>
