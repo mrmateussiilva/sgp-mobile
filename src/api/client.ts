@@ -1,7 +1,19 @@
 // Em desenvolvimento, usa o proxy do Vite (/api)
 // Em produção, usa a URL completa da API
 // O proxy remove o /api e redireciona para localhost:8000
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:8000')
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  // Em desenvolvimento, usa proxy relativo
+  if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
+    return '/api'
+  }
+  // Em produção, usa URL completa
+  return 'http://localhost:8000'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 interface RequestOptions extends RequestInit {
   skipAuth?: boolean
@@ -30,7 +42,14 @@ class ApiClient {
       }
     }
 
-    const url = `${API_BASE_URL}${endpoint}`
+    // Garante que o endpoint comece com /
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+    const url = `${API_BASE_URL}${normalizedEndpoint}`
+    
+    // Debug temporário - remover em produção
+    if (import.meta.env.DEV) {
+      console.log('API Request:', { url, baseUrl: API_BASE_URL, endpoint: normalizedEndpoint })
+    }
 
     try {
       const response = await fetch(url, {
