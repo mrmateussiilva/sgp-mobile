@@ -16,9 +16,21 @@ export interface Order {
   valor_itens?: string | null
   telefone_cliente?: string | null
   estado_cliente?: string | null
+  // Campos de produção
+  setor_financeiro?: boolean
+  setor_conferencia?: boolean
+  setor_sublimacao?: boolean
+  setor_costura?: boolean
+  setor_expedicao?: boolean
+  maquina_sublimacao?: string | null
+  data_impressao?: string | null
+  observacoes?: string | null
   items?: Array<{
     id?: number | null
     descricao?: string | null
+    especificacoes?: string | null
+    observacoes?: string | null
+    imagem_url?: string | null
     [key: string]: any
   }>
   data_criacao: string
@@ -73,12 +85,27 @@ export const useOrders = () => {
     }
   }, [])
 
+  // Atualizar campos específicos de produção
+  const updateProductionStatus = useCallback(async (orderId: number, productionData: Partial<Order>): Promise<void> => {
+    try {
+      await apiClient.patch(`/pedidos/${orderId}`, productionData)
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.id === orderId ? { ...order, ...productionData } : order
+        )
+      )
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Erro ao atualizar dados de produção')
+    }
+  }, [])
+
   return {
     orders,
     loading,
     error,
     fetchOrders,
     updateOrderStatus,
+    updateProductionStatus,
     getOrderById,
   }
 }

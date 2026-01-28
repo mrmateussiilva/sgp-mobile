@@ -1,28 +1,28 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useOrders } from '../hooks/useOrders'
 import { OrderCard } from '../components/OrderCard'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../auth/useAuth'
 
 export const Dashboard = () => {
+  const navigate = useNavigate()
   const { orders, loading } = useOrders()
   const { logout } = useAuth()
 
   const stats = useMemo(() => {
     const total = orders.length
     const pending = orders.filter(o => o.status === 'pendente').length
-    
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const overdue = orders.filter(order => {
+
+    const todayStr = new Date().toISOString().split('T')[0]
+    const dueToday = orders.filter(order => {
       if (!order.data_entrega) return false
-      const deliveryDate = new Date(order.data_entrega)
-      return deliveryDate < today && 
-             order.status !== 'entregue' && 
-             order.status !== 'cancelado'
+      return order.data_entrega.startsWith(todayStr) &&
+        order.status !== 'entregue' &&
+        order.status !== 'cancelado'
     }).length
 
-    return { total, pending, overdue }
+    return { total, pending, dueToday }
   }, [orders])
 
   const recentOrders = useMemo(() => {
@@ -81,14 +81,76 @@ export const Dashboard = () => {
           </div>
           <div className="bg-card rounded-lg p-4 shadow-elevation border border-border">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground">Atrasados</p>
-              <div className="bg-destructive/10 rounded-md p-1.5">
-                <svg className="w-4 h-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <p className="text-xs font-medium text-muted-foreground">Hoje</p>
+              <div className="bg-green-50 rounded-md p-1.5">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
             </div>
-            <p className="text-2xl font-bold text-destructive">{stats.overdue}</p>
+            <p className="text-2xl font-bold text-green-600">{stats.dueToday}</p>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">Ações Rápidas</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => navigate('/orders?status=pendente')}
+              className="flex items-center p-3 bg-card border border-border rounded-xl shadow-sm active:scale-95 transition-transform"
+            >
+              <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3 text-yellow-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-foreground line-clamp-1">Pendentes</p>
+                <p className="text-[10px] text-muted-foreground">Ver listagem</p>
+              </div>
+            </button>
+            <button
+              onClick={() => navigate('/orders?status=em_producao')}
+              className="flex items-center p-3 bg-card border border-border rounded-xl shadow-sm active:scale-95 transition-transform"
+            >
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 text-blue-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-foreground line-clamp-1">Produção</p>
+                <p className="text-[10px] text-muted-foreground">Ver listagem</p>
+              </div>
+            </button>
+            <button
+              onClick={() => navigate('/orders?status=pronto')}
+              className="flex items-center p-3 bg-card border border-border rounded-xl shadow-sm active:scale-95 transition-transform"
+            >
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3 text-green-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-foreground line-clamp-1">Pronto</p>
+                <p className="text-[10px] text-muted-foreground">Ver listagem</p>
+              </div>
+            </button>
+            <button
+              onClick={() => navigate('/orders')}
+              className="flex items-center p-3 bg-card border border-border rounded-xl shadow-sm active:scale-95 transition-transform"
+            >
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mr-3 text-slate-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-foreground line-clamp-1">Buscar</p>
+                <p className="text-[10px] text-muted-foreground">Localizar pedido</p>
+              </div>
+            </button>
           </div>
         </div>
 

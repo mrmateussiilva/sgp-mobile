@@ -1,16 +1,36 @@
-import { useState, useMemo } from 'react'
-import { useOrders, Order, OrderStatus } from '../hooks/useOrders'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useOrders, OrderStatus } from '../hooks/useOrders'
 import { OrderCard } from '../components/OrderCard'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../auth/useAuth'
 
-type StatusFilter = 'all' | OrderStatus | 'overdue'
+type StatusFilter = 'all' | OrderStatus | 'overdue' | 'today'
 
 export const Orders = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const { orders, loading, fetchOrders } = useOrders()
   const { logout } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>((searchParams.get('status') as StatusFilter) || 'all')
+
+  // Sincronizar filtro com URL
+  useEffect(() => {
+    const status = searchParams.get('status')
+    if (status) {
+      setStatusFilter(status as StatusFilter)
+    }
+  }, [searchParams])
+
+  const handleSetStatusFilter = (status: StatusFilter) => {
+    setStatusFilter(status)
+    if (status === 'all') {
+      searchParams.delete('status')
+    } else {
+      searchParams.set('status', status)
+    }
+    setSearchParams(searchParams)
+  }
 
   const filteredOrders = useMemo(() => {
     let filtered = [...orders]
@@ -22,9 +42,17 @@ export const Orders = () => {
       filtered = filtered.filter(order => {
         if (!order.data_entrega) return false
         const deliveryDate = new Date(order.data_entrega)
-        return deliveryDate < today && 
-               order.status !== 'entregue' && 
-               order.status !== 'cancelado'
+        return deliveryDate < today &&
+          order.status !== 'entregue' &&
+          order.status !== 'cancelado'
+      })
+    } else if (statusFilter === 'today') {
+      const todayStr = new Date().toISOString().split('T')[0]
+      filtered = filtered.filter(order => {
+        if (!order.data_entrega) return false
+        return order.data_entrega.startsWith(todayStr) &&
+          order.status !== 'entregue' &&
+          order.status !== 'cancelado'
       })
     } else if (statusFilter !== 'all') {
       filtered = filtered.filter(order => order.status === statusFilter)
@@ -97,25 +125,24 @@ export const Orders = () => {
           </div>
         </div>
 
-        {/* Filtros */}
         <div className="mb-4">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {(['all', 'pendente', 'overdue', 'em_producao', 'pronto', 'entregue'] as StatusFilter[]).map((status) => (
+            {(['all', 'today', 'pendente', 'em_producao', 'pronto', 'overdue', 'entregue'] as StatusFilter[]).map((status) => (
               <button
                 key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
-                  statusFilter === status
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent'
-                }`}
+                onClick={() => handleSetStatusFilter(status)}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${statusFilter === status
+                  ? 'bg-primary text-primary-foreground shadow-sm scale-105'
+                  : 'bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent'
+                  }`}
               >
                 {status === 'all' ? '📋 Todos' :
-                 status === 'pendente' ? '⏳ Pendentes' :
-                 status === 'overdue' ? '⚠️ Atrasados' :
-                 status === 'em_producao' ? '🔧 Em Produção' :
-                 status === 'pronto' ? '✅ Pronto' :
-                 '📦 Entregues'}
+                  status === 'today' ? '📅 Hoje' :
+                    status === 'pendente' ? '⏳ Pendentes' :
+                      status === 'overdue' ? '⚠️ Atrasados' :
+                        status === 'em_producao' ? '🔧 Em Produção' :
+                          status === 'pronto' ? '✅ Pronto' :
+                            '📦 Entregues'}
               </button>
             ))}
           </div>
@@ -134,8 +161,8 @@ export const Orders = () => {
             </svg>
             <p className="text-sm font-medium text-foreground mb-1">Nenhum pedido encontrado</p>
             <p className="text-xs text-muted-foreground">
-              {searchTerm || statusFilter !== 'all' 
-                ? 'Tente ajustar os filtros de busca' 
+              {searchTerm || statusFilter !== 'all'
+                ? 'Tente ajustar os filtros de busca'
                 : 'Não há pedidos cadastrados ainda'}
             </p>
           </div>
