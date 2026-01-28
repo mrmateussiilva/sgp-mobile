@@ -4,8 +4,6 @@ import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Orders } from './pages/Orders'
 import { OrderDetails } from './pages/OrderDetails'
-import { Reports } from './pages/Reports'
-import { Admin } from './pages/Admin'
 import { ApiConnectionFallback } from './pages/ApiConnectionFallback'
 import { useApiConnection } from './hooks/useApiConnection'
 
@@ -33,7 +31,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
     window.addEventListener('storage', handleStorageChange)
     window.addEventListener('auth-change', handleAuthChange)
-    
+
     // Polling para detectar mudanças no mesmo tab (fallback)
     const interval = setInterval(checkAuth, 500)
 
@@ -57,63 +55,46 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppContent = () => {
   const location = useLocation()
-  const { isOnline, isChecking } = useApiConnection()
-  
+  const { isOnline } = useApiConnection()
+
   // Mostra fallback apenas se:
-  // 1. Não estiver verificando (já tentou conectar)
-  // 2. Está offline
-  // 3. Não está na tela de login (permite tentar fazer login mesmo offline inicialmente)
-  const shouldShowFallback = !isChecking && isOnline === false && location.pathname !== '/login'
-  
+  // 1. Está offline (isOnline === false)
+  // 2. Não está na tela de login (permite tentar fazer login mesmo offline inicialmente)
+  const shouldShowFallback = isOnline === false && location.pathname !== '/login'
+
   if (shouldShowFallback) {
     return <ApiConnectionFallback />
   }
-  
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <PrivateRoute>
-              <Orders />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/orders/:id"
-          element={
-            <PrivateRoute>
-              <OrderDetails />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/reports"
-          element={
-            <PrivateRoute>
-              <Reports />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <PrivateRoute>
-              <Admin />
-            </PrivateRoute>
-          }
-        />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/orders"
+        element={
+          <PrivateRoute>
+            <Orders />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/orders/:id"
+        element={
+          <PrivateRoute>
+            <OrderDetails />
+          </PrivateRoute>
+        }
+      />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   )
 }
 

@@ -1,32 +1,41 @@
-// Em desenvolvimento, usa o proxy do Vite (/api)
-// Em produção, usa a URL completa da API
-// O proxy remove o /api e redireciona para localhost:8000
+// Configuração do cliente API
+// Em desenvolvimento, usa o endereço do servidor local configurado em FALLBACK_URLS
+// Em produção, usa a URL completa configurada no build ou fallback VPS
+// URLs de Fallback pré-configuradas
+export const FALLBACK_URLS = {
+  PUBLIC: 'https://api.vps-finderbit.com', // Exemplo de VPS
+  LOCAL: 'http://192.168.1.100:8000',     // Exemplo de IP Local (Intranet)
+}
+
 export const getApiBaseUrl = () => {
-  // Primeiro, verifica se há URL customizada no localStorage
+  // 1. Prioridade máxima: URL customizada manualmente pelo usuário
   const customUrl = localStorage.getItem('api_url')
   if (customUrl) {
     return customUrl
   }
-  
+
+  // 2. Segunda prioridade: Variável de ambiente (configurada no build)
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL
   }
-  // Em desenvolvimento, usa proxy relativo
-  // Verifica múltiplas formas de detectar desenvolvimento
-  const isDev = 
-    import.meta.env.DEV || 
+
+  // 3. Terceira prioridade: Detecção automática de ambiente (Desenvolvimento)
+  const isDev =
+    import.meta.env.DEV ||
     import.meta.env.MODE === 'development' ||
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1'
-  
+
   if (isDev) {
-    return '/api'
+    // Retorna o endereço local direto do backend para facilitar testes e evitar confusão com prefixos de proxy
+    return FALLBACK_URLS.LOCAL
   }
-  // Em produção, usa URL completa
-  return 'http://localhost:8000'
+
+  // 4. Quarta prioridade: Fallback padrão (VPS)
+  return FALLBACK_URLS.PUBLIC
 }
 
-const API_BASE_URL = getApiBaseUrl()
+// export const API_BASE_URL = getApiBaseUrl() // Removido por não ser usado localmente de forma estática
 
 interface RequestOptions extends RequestInit {
   skipAuth?: boolean
@@ -61,7 +70,7 @@ class ApiClient {
 
     // Garante que o endpoint comece com /
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
-    
+
     // Constrói a URL - sempre obtém a URL atual (pode ter mudado)
     const baseUrl = this.getBaseUrl()
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl

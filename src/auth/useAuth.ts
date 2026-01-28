@@ -7,15 +7,6 @@ interface LoginCredentials {
   password: string
 }
 
-interface AuthResponse {
-  token: string
-  user?: {
-    id: string
-    email: string
-    name: string
-  }
-}
-
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -36,16 +27,16 @@ export const useAuth = () => {
       )
 
       // Tenta diferentes formatos de resposta da API
-      const token = 
+      const token =
         response.session_token ||
-        response.token || 
-        response.access_token || 
+        response.token ||
+        response.access_token ||
         response.accessToken ||
         response.data?.token ||
         response.data?.access_token ||
         response.data?.session_token ||
         (typeof response === 'string' ? response : null)
-      
+
       if (token) {
         localStorage.setItem('token', token)
         setIsAuthenticated(true)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useApiConnection } from '../hooks/useApiConnection'
-import { getApiBaseUrl } from '../api/client'
+import { getApiBaseUrl, FALLBACK_URLS } from '../api/client'
 
 export const ApiConnectionFallback = () => {
   const { isOnline, isChecking, checkConnection } = useApiConnection()
@@ -15,44 +15,43 @@ export const ApiConnectionFallback = () => {
   const testConnection = async (url: string) => {
     setTesting(true)
     setTestResult(null)
-    
+
     try {
       // Testa a conexão
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000)
-      
-      const response = await fetch(`${url}/auth/login`, {
-        method: 'POST',
+
+      await fetch(`${url}/auth/login`, {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'test', password: 'test' }),
         signal: controller.signal,
       })
-      
+
       clearTimeout(timeoutId)
-      
+
       // Qualquer resposta HTTP significa que API está online
       setTestResult({ success: true, message: 'Conexão com API estabelecida!' })
       setTimeout(() => {
         localStorage.setItem('api_url', url)
-        window.location.reload()
+        window.dispatchEvent(new CustomEvent('api-url-changed'))
       }, 1500)
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        setTestResult({ 
-          success: false, 
-          message: 'Timeout: O servidor demorou muito para responder. Verifique a URL e se o servidor está acessível.' 
+        setTestResult({
+          success: false,
+          message: 'Timeout: O servidor demorou muito para responder. Verifique a URL e se o servidor está acessível.'
         })
-      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
-        setTestResult({ 
-          success: false, 
-          message: 'Não foi possível conectar à API. Verifique a URL e se o servidor está rodando.' 
+      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError') || error instanceof TypeError) {
+        setTestResult({
+          success: false,
+          message: 'Erro de Conexão ou CORS: O navegador bloqueou a requisição. Certifique-se que o backend permite acesso (CORS) de "http://localhost:3000".'
         })
       } else {
-        // Erro HTTP significa que API está online
-        setTestResult({ success: true, message: 'Conexão com API estabelecida!' })
+        // Erro HTTP (4xx, 5xx) significa que o servidor respondeu, logo a conexão existe
+        setTestResult({ success: true, message: 'Conexão detectada (Servidor respondeu)!' })
         setTimeout(() => {
           localStorage.setItem('api_url', url)
-          window.location.reload()
+          window.dispatchEvent(new CustomEvent('api-url-changed'))
         }, 1500)
       }
     } finally {
@@ -65,14 +64,14 @@ export const ApiConnectionFallback = () => {
       setTestResult({ success: false, message: 'Por favor, informe uma URL' })
       return
     }
-    
+
     // Normaliza a URL
     let url = customUrl.trim()
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = `http://${url}`
     }
     url = url.replace(/\/$/, '')
-    
+
     testConnection(url)
   }
 
@@ -133,17 +132,62 @@ export const ApiConnectionFallback = () => {
             </div>
           </div>
 
+          {/* Seleção Rápida */}
+          <div className="mb-6 pt-6 border-t border-border">
+            <label className="block text-sm font-semibold text-foreground mb-3 flex items-center">
+              <svg className="w-4 h-4 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-7 0V4" />
+              </svg>
+              Servidores Pré-configurados
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              <button
+                onClick={() => {
+                  setCustomUrl(FALLBACK_URLS.PUBLIC)
+                  testConnection(FALLBACK_URLS.PUBLIC)
+                }}
+                disabled={testing}
+                className="flex items-center justify-between p-4 bg-accent/50 rounded-xl border border-border hover:border-primary/50 transition-all active:scale-[0.98]"
+              >
+                <div className="text-left">
+                  <p className="text-sm font-bold text-foreground">Servidor Público (VPS)</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{FALLBACK_URLS.PUBLIC}</p>
+                </div>
+                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <button
+                onClick={() => {
+                  setCustomUrl(FALLBACK_URLS.LOCAL)
+                  testConnection(FALLBACK_URLS.LOCAL)
+                }}
+                disabled={testing}
+                className="flex items-center justify-between p-4 bg-accent/50 rounded-xl border border-border hover:border-primary/50 transition-all active:scale-[0.98]"
+              >
+                <div className="text-left">
+                  <p className="text-sm font-bold text-foreground">Servidor Local (Intranet)</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{FALLBACK_URLS.LOCAL}</p>
+                </div>
+                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
           {/* Formulário para configurar URL */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-foreground mb-2">
-              Configurar URL da API
+              Informar outra URL
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
-                placeholder="http://localhost:8000"
+                placeholder="Ex: http://192.168.1.10"
                 className="flex-1 px-4 py-3 text-sm border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-ring"
                 onKeyPress={(e) => e.key === 'Enter' && handleTestConnection()}
               />
@@ -152,15 +196,14 @@ export const ApiConnectionFallback = () => {
                 disabled={testing}
                 className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
               >
-                {testing ? 'Testando...' : 'Testar'}
+                {testing ? '...' : 'Testar'}
               </button>
             </div>
             {testResult && (
-              <div className={`mt-3 p-3 rounded-lg border ${
-                testResult.success 
-                  ? 'bg-green-50 border-green-200 text-green-800' 
-                  : 'bg-destructive/10 border-destructive/20 text-destructive'
-              }`}>
+              <div className={`mt-3 p-3 rounded-lg border ${testResult.success
+                ? 'bg-green-50 border-green-200 text-green-800'
+                : 'bg-destructive/10 border-destructive/20 text-destructive'
+                }`}>
                 <p className="text-sm font-medium">{testResult.message}</p>
               </div>
             )}
@@ -175,11 +218,11 @@ export const ApiConnectionFallback = () => {
             >
               {isChecking ? 'Verificando...' : 'Tentar Novamente'}
             </button>
-            
+
             <button
               onClick={() => {
                 localStorage.removeItem('api_url')
-                window.location.reload()
+                window.dispatchEvent(new CustomEvent('api-url-changed'))
               }}
               className="w-full px-4 py-3 text-muted-foreground rounded-lg font-medium hover:bg-accent transition-colors"
             >
