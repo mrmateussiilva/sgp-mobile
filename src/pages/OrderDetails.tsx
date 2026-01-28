@@ -1,26 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useOrders, Order, OrderStatus } from '../hooks/useOrders'
+import { useOrders, Order } from '../hooks/useOrders'
 import { StatusBadge } from '../components/StatusBadge'
 import { BottomNav } from '../components/BottomNav'
-
-const statusOptions: OrderStatus[] = ['pendente', 'em_producao', 'pronto', 'entregue', 'cancelado']
-
-const statusLabels: Record<OrderStatus, string> = {
-  pendente: 'Pendente',
-  em_producao: 'Em Produção',
-  pronto: 'Pronto',
-  entregue: 'Entregue',
-  cancelado: 'Cancelado',
-}
 
 export const OrderDetails = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { getOrderById, updateOrderStatus } = useOrders()
+  const { getOrderById } = useOrders()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
-  const [updating, setUpdating] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
@@ -46,31 +35,6 @@ export const OrderDetails = () => {
 
     loadOrder()
   }, [id, getOrderById])
-
-  const handleStatusChange = async (newStatus: OrderStatus) => {
-    if (!order || !id) return
-
-    try {
-      setUpdating(true)
-      setMessage(null)
-      const orderId = parseInt(id, 10)
-      if (isNaN(orderId)) {
-        throw new Error('ID do pedido inválido')
-      }
-      await updateOrderStatus(orderId, newStatus)
-      setOrder({ ...order, status: newStatus })
-      setMessage({ type: 'success', text: 'Status atualizado com sucesso!' })
-      
-      setTimeout(() => setMessage(null), 3000)
-    } catch (error) {
-      setMessage({
-        type: 'error',
-        text: error instanceof Error ? error.message : 'Erro ao atualizar status',
-      })
-    } finally {
-      setUpdating(false)
-    }
-  }
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'Não definida'
@@ -148,11 +112,10 @@ export const OrderDetails = () => {
       <main className="px-4 py-5 max-w-7xl mx-auto">
         {message && (
           <div
-            className={`mb-4 p-3 rounded-lg flex items-start ${
-              message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-destructive/10 border border-destructive/20 text-destructive'
-            }`}
+            className={`mb-4 p-3 rounded-lg flex items-start ${message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-destructive/10 border border-destructive/20 text-destructive'
+              }`}
           >
             <svg className={`w-4 h-4 mr-2 mt-0.5 flex-shrink-0 ${message.type === 'success' ? 'text-green-600' : 'text-destructive'}`} fill="currentColor" viewBox="0 0 20 20">
               {message.type === 'success' ? (
@@ -223,61 +186,116 @@ export const OrderDetails = () => {
           </div>
         </div>
 
-        {/* Alterar Status */}
-        <div className="bg-card rounded-lg shadow-elevation p-5 mb-4 border border-border">
-          <h3 className="text-base font-bold text-foreground mb-1">Alterar Status</h3>
-          <p className="text-xs text-muted-foreground mb-4">Toque no status desejado:</p>
-          <div className="space-y-2">
-            {statusOptions.map((status) => (
-              <button
-                key={status}
-                onClick={() => handleStatusChange(status)}
-                disabled={updating || order.status === status}
-                className={`w-full text-left px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                  order.status === status
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-accent text-foreground hover:bg-accent/80 border border-border hover:border-primary/50'
-                } disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent disabled:hover:border-border`}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{statusLabels[status]}</span>
-                  {order.status === status && (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-          {updating && (
-            <div className="mt-3 text-center">
-              <div className="inline-flex items-center text-xs text-primary">
-                <svg className="animate-spin -ml-1 mr-2 h-3 w-3" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Atualizando...
+        {/* Informações da Produção (Somente Leitura) */}
+        {(order.setor_financeiro || order.setor_conferencia || order.setor_sublimacao || order.setor_costura || order.setor_expedicao || order.maquina_sublimacao || order.data_impressao) && (
+          <div className="bg-card rounded-lg shadow-elevation p-5 mb-4 border border-border">
+            <h3 className="text-base font-bold text-foreground mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              Status de Produção
+            </h3>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className={`p-2 rounded text-center border ${order.setor_financeiro ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'}`}>
+                <p className="text-[10px] uppercase font-bold">Financeiro</p>
+                <p className="text-xs font-semibold">{order.setor_financeiro ? 'OK' : '-'}</p>
+              </div>
+              <div className={`p-2 rounded text-center border ${order.setor_conferencia ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'}`}>
+                <p className="text-[10px] uppercase font-bold">Conferência</p>
+                <p className="text-xs font-semibold">{order.setor_conferencia ? 'OK' : '-'}</p>
+              </div>
+              <div className={`p-2 rounded text-center border ${order.setor_sublimacao ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'}`}>
+                <p className="text-[10px] uppercase font-bold">Sublimação</p>
+                <p className="text-xs font-semibold">{order.setor_sublimacao ? 'OK' : '-'}</p>
+              </div>
+              <div className={`p-2 rounded text-center border ${order.setor_costura ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'}`}>
+                <p className="text-[10px] uppercase font-bold">Costura</p>
+                <p className="text-xs font-semibold">{order.setor_costura ? 'OK' : '-'}</p>
+              </div>
+              <div className={`p-2 rounded text-center border ${order.setor_expedicao ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'}`}>
+                <p className="text-[10px] uppercase font-bold">Expedição</p>
+                <p className="text-xs font-semibold">{order.setor_expedicao ? 'OK' : '-'}</p>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Itens do pedido (se disponível) */}
-        {order.items && order.items.length > 0 && (
-          <div className="bg-card rounded-lg shadow-elevation p-5 border border-border">
-            <h3 className="text-base font-bold text-foreground mb-4">Itens do Pedido</h3>
-            <div className="space-y-2">
-              {order.items.map((item, index) => (
-                <div key={item.id || index} className="flex items-start py-2 border-b border-border last:border-0">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{item.descricao || 'Item sem descrição'}</p>
+            {(order.maquina_sublimacao || order.data_impressao) && (
+              <div className="pt-4 border-t border-border space-y-3">
+                {order.maquina_sublimacao && (
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Máquina de Sublimação</p>
+                    <p className="text-sm font-semibold text-foreground">{order.maquina_sublimacao}</p>
                   </div>
-                </div>
-              ))}
-            </div>
+                )}
+                {order.data_impressao && (
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Data de Impressão</p>
+                    <p className="text-sm font-semibold text-foreground">{formatDate(order.data_impressao)}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
+
+        {/* Itens do pedido */}
+        <div className="bg-card rounded-lg shadow-elevation p-5 border border-border">
+          <h3 className="text-base font-bold text-foreground mb-4 flex items-center">
+            <svg className="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            Itens do Pedido
+          </h3>
+
+          <div className="space-y-6">
+            {order.items && order.items.length > 0 ? (
+              order.items.map((item, index) => (
+                <div key={item.id || index} className="pb-6 border-b border-border last:border-0 last:pb-0">
+                  <div className="flex gap-4">
+                    {/* Placeholder para imagem */}
+                    <div className="w-20 h-20 bg-accent/50 rounded-lg flex-shrink-0 flex items-center justify-center border border-dashed border-border overflow-hidden">
+                      {item.imagem_url ? (
+                        <img src={item.imagem_url} alt={item.descricao || undefined} className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-8 h-8 text-muted-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-foreground mb-1">{item.descricao || 'Item sem descrição'}</p>
+
+                      {item.especificacoes && (
+                        <div className="mb-2">
+                          <p className="text-[10px] text-muted-foreground uppercase font-semibold">Especificações</p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap">{item.especificacoes}</p>
+                        </div>
+                      )}
+
+                      {item.observacoes && (
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-semibold">Observações do Item</p>
+                          <p className="text-xs text-yellow-700 bg-yellow-50 p-2 rounded mt-1 border border-yellow-100">{item.observacoes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4 italic">Nenhum item detalhado encontrado</p>
+            )}
+
+            {order.observacoes && (
+              <div className="pt-4 border-t border-border mt-4">
+                <h4 className="text-xs font-bold text-foreground mb-2 uppercase tracking-wider">Observações do Pedido</h4>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <p className="text-xs text-slate-700 whitespace-pre-wrap">{order.observacoes}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </main>
 
       <BottomNav />
