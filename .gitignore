@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
+# Vite
+vite.config.ts.timestamp-*
+vite.config.js.timestamp-*
+
