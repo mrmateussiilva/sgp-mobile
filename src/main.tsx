@@ -19,10 +19,10 @@ if ('serviceWorker' in navigator) {
         onOfflineReady() {
           // App está pronto para funcionar offline
         },
-        onRegistered(registration) {
+        onRegistered() {
           // Service Worker registrado com sucesso
         },
-        onRegisterError(error) {
+        onRegisterError() {
           // Erro ao registrar Service Worker
         },
       })

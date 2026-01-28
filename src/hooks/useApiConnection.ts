@@ -13,12 +13,11 @@ export const useApiConnection = () => {
       const baseUrl = getApiBaseUrl()
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000) // Timeout de 5 segundos
-      
+
       try {
-        const response = await fetch(`${baseUrl}/auth/login`, {
-          method: 'POST',
+        await fetch(`${baseUrl}/`, {
+          method: 'GET',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: 'test', password: 'test' }),
           signal: controller.signal,
         })
         clearTimeout(timeoutId)
@@ -44,9 +43,30 @@ export const useApiConnection = () => {
 
   useEffect(() => {
     checkConnection()
+
+    // Listen for storage changes (e.g. from other tabs or same-tab localStorage updates)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'api_url') {
+        checkConnection()
+      }
+    }
+
+    // Listen for custom event when API URL is changed in the same tab
+    const handleCustomEvent = () => {
+      checkConnection()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('api-url-changed', handleCustomEvent)
+
     // Verifica a cada 30 segundos
     const interval = setInterval(checkConnection, 30000)
-    return () => clearInterval(interval)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('api-url-changed', handleCustomEvent)
+      clearInterval(interval)
+    }
   }, [checkConnection])
 
   return { isOnline, isChecking, checkConnection }
