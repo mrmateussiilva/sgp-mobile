@@ -4,11 +4,11 @@
 // URLs de Fallback pré-configuradas
 export const FALLBACK_URLS = {
   PUBLIC: 'https://api.vps-finderbit.com', // Exemplo de VPS
-  LOCAL: 'http://192.168.1.100:8000',     // Exemplo de IP Local (Intranet)
+  LOCAL: 'http://192.168.15.2:8000',      // IP da sua máquina
 }
 
 export const getApiBaseUrl = () => {
-  // 1. Prioridade máxima: URL customizada manualmente pelo usuário
+  // 1. Prioridade máxima: URL customizada manualmente pelo usuário (via Fallback UI)
   const customUrl = localStorage.getItem('api_url')
   if (customUrl) {
     return customUrl
@@ -19,15 +19,17 @@ export const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL
   }
 
-  // 3. Terceira prioridade: Detecção automática de ambiente (Desenvolvimento)
-  const isDev =
-    import.meta.env.DEV ||
-    import.meta.env.MODE === 'development' ||
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1'
+  const hostname = window.location.hostname
+  const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname)
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
 
-  if (isDev) {
-    // Retorna o endereço local direto do backend para facilitar testes e evitar confusão com prefixos de proxy
+  // 3. Terceira prioridade: Detecção automática de ambiente (Desenvolvimento)
+  if (import.meta.env.DEV || import.meta.env.MODE === 'development' || isLocal || isIP) {
+    // Se acessado por IP (celular na rede local), usa o mesmo IP para a API
+    if (isIP) {
+      return `http://${hostname}:8000`
+    }
+    // Se localhost, usa o padrão local
     return FALLBACK_URLS.LOCAL
   }
 
@@ -82,7 +84,7 @@ class ApiClient {
         headers,
       })
 
-      if (response.status === 401) {
+      if (response.status === 401 && !skipAuth) {
         localStorage.removeItem('token')
         window.location.href = '/login'
         throw new Error('Token inválido ou expirado')
@@ -95,6 +97,7 @@ class ApiClient {
           errorMessage = errorData.detail || errorData.message || errorMessage
         } catch {
           // Se não conseguir parsear JSON, usa a mensagem padrão
+          if (response.status === 401) errorMessage = 'Não autorizado'
         }
         throw new Error(errorMessage)
       }

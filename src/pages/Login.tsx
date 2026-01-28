@@ -32,8 +32,16 @@ export const Login = () => {
 
     try {
       await login({ username, password })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login')
+    } catch (err: any) {
+      const message = err.message || ''
+
+      if (message.includes('401') || message.toLowerCase().includes('unauthorized') || message.includes('Não autorizado')) {
+        setError('USUÁRIO OU SENHA INCORRETOS')
+      } else if (message.toLowerCase().includes('failed to fetch') || message.toLowerCase().includes('network error')) {
+        setError('ERRO DE CONEXÃO: VERIFIQUE O SERVIDOR')
+      } else {
+        setError(message.toUpperCase() || 'ERRO AO ACESSAR SISTEMA')
+      }
     } finally {
       setLoading(false)
     }
