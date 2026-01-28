@@ -1,5 +1,14 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import {
+  LogOut,
+  ClipboardList,
+  Clock,
+  CheckCircle2,
+  ArrowRight,
+  TrendingUp,
+  AlertCircle
+} from 'lucide-react'
 import { useOrders } from '../hooks/useOrders'
 import { OrderCard } from '../components/OrderCard'
 import { BottomNav } from '../components/BottomNav'
@@ -37,148 +46,134 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen pb-28 bg-background">
-      <header className="bg-card shadow-sm sticky top-0 z-40 border-b border-border">
-        <div className="px-4 py-4 flex justify-between items-center max-w-7xl mx-auto">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Visão geral dos pedidos</p>
+      <header className="bg-card sticky top-0 z-40 border-b border-border transition-all">
+        <div className="px-5 py-4 flex justify-between items-center max-w-7xl mx-auto">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+              <span className="text-primary-foreground font-black text-xs">S</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-black text-foreground tracking-tighter leading-none">S.G.P <span className="text-primary">v4</span></h1>
+              <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mt-0.5">Control Center</p>
+            </div>
           </div>
           <button
             onClick={logout}
-            className="p-2.5 text-muted-foreground hover:bg-accent rounded-lg transition-colors active:bg-accent"
-            title="Sair"
+            className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all active:scale-90"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <LogOut className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <main className="px-4 py-5 max-w-7xl mx-auto">
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-card rounded-lg p-4 shadow-elevation border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground">Total</p>
-              <div className="bg-primary/10 rounded-md p-1.5">
-                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+      <main className="px-5 py-6 max-w-7xl mx-auto space-y-8">
+        {/* Sumário Executivo */}
+        <section>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="bg-primary rounded-3xl p-6 shadow-2xl shadow-primary/30 relative overflow-hidden group">
+              <div className="relative z-10 flex justify-between items-end">
+                <div>
+                  <label className="text-primary-foreground/70 mb-1 block">Pedidos Ativos</label>
+                  <p className="text-4xl font-black text-white leading-none">{stats.total}</p>
+                </div>
+                <div className="text-right">
+                  <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md mb-2 inline-block">
+                    <TrendingUp className="text-white w-5 h-5" />
+                  </div>
+                  <p className="text-[10px] font-black text-white/80 uppercase tracking-widest">Geral</p>
+                </div>
               </div>
+              <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform"></div>
             </div>
-            <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-          </div>
-          <div className="bg-card rounded-lg p-4 shadow-elevation border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground">Pendentes</p>
-              <div className="bg-yellow-50 rounded-md p-1.5">
-                <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-          </div>
-          <div className="bg-card rounded-lg p-4 shadow-elevation border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground">Hoje</p>
-              <div className="bg-green-50 rounded-md p-1.5">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-green-600">{stats.dueToday}</p>
-          </div>
-        </div>
 
-        <div className="mb-6">
-          <h2 className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">Ações Rápidas</h2>
-          <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-card rounded-2xl p-5 border border-border shadow-elevation">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-yellow-500/10 p-2 rounded-xl">
+                    <Clock className="w-4 h-4 text-yellow-600" />
+                  </div>
+                  <label className="text-yellow-600/80">Pendentes</label>
+                </div>
+                <p className="text-3xl font-black text-foreground leading-none">{stats.pending}</p>
+              </div>
+
+              <div className="bg-card rounded-2xl p-5 border border-border shadow-elevation">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-green-500/10 p-2 rounded-xl">
+                    <AlertCircle className="w-4 h-4 text-green-600" />
+                  </div>
+                  <label className="text-green-600/80">Entrega Hoje</label>
+                </div>
+                <p className="text-3xl font-black text-foreground leading-none">{stats.dueToday}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Ações Rápidas */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <ClipboardList className="w-4 h-4 text-primary" />
+            <h3 className="text-xs font-black uppercase tracking-widest text-foreground">Fluxo de Trabalho</h3>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => navigate('/orders?status=pendente')}
-              className="flex items-center p-3 bg-card border border-border rounded-xl shadow-sm active:scale-95 transition-transform"
+              className="group flex flex-col items-start p-5 bg-card border border-border rounded-2xl shadow-sm active:scale-95 transition-all text-left relative overflow-hidden"
             >
-              <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3 text-yellow-600">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="w-10 h-10 rounded-xl bg-accent text-foreground flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <Clock className="w-5 h-5" />
               </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-foreground line-clamp-1">Pendentes</p>
-                <p className="text-[10px] text-muted-foreground">Ver listagem</p>
-              </div>
+              <p className="text-sm font-black text-foreground mb-1 uppercase tracking-tight">Pendentes</p>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Aguardando Início</p>
+              <ArrowRight className="absolute bottom-4 right-4 w-4 h-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all" />
             </button>
+
             <button
               onClick={() => navigate('/orders?status=em_producao')}
-              className="flex items-center p-3 bg-card border border-border rounded-xl shadow-sm active:scale-95 transition-transform"
+              className="group flex flex-col items-start p-5 bg-card border border-border rounded-2xl shadow-sm active:scale-95 transition-all text-left relative overflow-hidden"
             >
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 text-blue-600">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
+              <div className="w-10 h-10 rounded-xl bg-accent text-foreground flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <CheckCircle2 className="w-5 h-5" />
               </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-foreground line-clamp-1">Produção</p>
-                <p className="text-[10px] text-muted-foreground">Ver listagem</p>
-              </div>
+              <p className="text-sm font-black text-foreground mb-1 uppercase tracking-tight">Em Produção</p>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Em Andamento</p>
+              <ArrowRight className="absolute bottom-4 right-4 w-4 h-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all" />
             </button>
-            <button
-              onClick={() => navigate('/orders?status=pronto')}
-              className="flex items-center p-3 bg-card border border-border rounded-xl shadow-sm active:scale-95 transition-transform"
-            >
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3 text-green-600">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-foreground line-clamp-1">Pronto</p>
-                <p className="text-[10px] text-muted-foreground">Ver listagem</p>
-              </div>
-            </button>
+          </div>
+        </section>
+
+        {/* Pedidos Recentes */}
+        <section>
+          <div className="flex justify-between items-center mb-4 px-1">
+            <h2 className="text-xs font-black uppercase tracking-widest text-foreground">Atividade Recente</h2>
             <button
               onClick={() => navigate('/orders')}
-              className="flex items-center p-3 bg-card border border-border rounded-xl shadow-sm active:scale-95 transition-transform"
+              className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
             >
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mr-3 text-slate-600">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-foreground line-clamp-1">Buscar</p>
-                <p className="text-[10px] text-muted-foreground">Localizar pedido</p>
-              </div>
+              Ver Tudo
             </button>
           </div>
-        </div>
 
-        <div className="mb-4">
-          <h2 className="text-lg font-bold text-foreground">Pedidos Recentes</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Últimos pedidos atualizados</p>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-16">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent mb-3"></div>
-            <p className="text-sm text-muted-foreground">Carregando pedidos...</p>
-          </div>
-        ) : recentOrders.length === 0 ? (
-          <div className="text-center py-16 bg-card rounded-lg shadow-elevation border border-border">
-            <svg className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="text-sm font-medium text-foreground">Nenhum pedido encontrado</p>
-            <p className="text-xs text-muted-foreground mt-1">Os pedidos aparecerão aqui quando houver</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {recentOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))}
-          </div>
-        )}
+          {loading ? (
+            <div className="text-center py-12 flex flex-col items-center">
+              <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sincronizando dados...</p>
+            </div>
+          ) : recentOrders.length === 0 ? (
+            <div className="text-center py-12 bg-card rounded-2xl border border-dashed border-border">
+              <ClipboardList className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-xs font-bold uppercase text-muted-foreground">Repositório Vazio</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+            </div>
+          )}
+        </section>
       </main>
 
       <BottomNav />
