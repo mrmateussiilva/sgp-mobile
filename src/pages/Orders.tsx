@@ -4,6 +4,19 @@ import { useOrders, OrderStatus } from '../hooks/useOrders'
 import { OrderCard } from '../components/OrderCard'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../auth/useAuth'
+import {
+  Search,
+  RefreshCw,
+  LogOut,
+  Filter,
+  Calendar,
+  Clock,
+  Settings,
+  CheckCircle2,
+  Package,
+  AlertTriangle,
+  ChevronRight
+} from 'lucide-react'
 
 type StatusFilter = 'all' | OrderStatus | 'overdue' | 'today'
 
@@ -75,111 +88,130 @@ export const Orders = () => {
     })
   }, [orders, statusFilter, searchTerm])
 
+  const statusIcons: Record<StatusFilter, any> = {
+    all: Filter,
+    today: Calendar,
+    pendente: Clock,
+    em_producao: Settings,
+    pronto: CheckCircle2,
+    overdue: AlertTriangle,
+    entregue: Package,
+    cancelado: AlertTriangle // Ou X daqui a pouco se preferir, mas para manter o tipo StatusFilter (que inclui os OrderStatus)
+  }
+
   return (
     <div className="min-h-screen pb-28 bg-background">
-      <header className="bg-card shadow-sm sticky top-0 z-40 border-b border-border">
-        <div className="px-4 py-4 flex justify-between items-center max-w-7xl mx-auto">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Pedidos</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Gerencie todos os pedidos</p>
+      <header className="bg-card sticky top-0 z-40 border-b border-border">
+        <div className="px-5 py-4 flex justify-between items-center max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary w-8 h-8 rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-black text-xs">S</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-black text-foreground tracking-tighter leading-none uppercase">Pedidos</h1>
+              <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mt-0.5">Listagem Geral</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               onClick={fetchOrders}
-              className="p-2.5 text-muted-foreground hover:bg-accent rounded-lg transition-colors active:bg-accent"
-              title="Atualizar lista"
+              className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:bg-accent rounded-xl transition-all active:scale-90"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin text-primary' : ''}`} />
             </button>
             <button
               onClick={logout}
-              className="p-2.5 text-muted-foreground hover:bg-accent rounded-lg transition-colors active:bg-accent"
-              title="Sair"
+              className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all active:scale-90"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="px-4 py-5 max-w-7xl mx-auto">
+      <main className="px-5 py-6 max-w-7xl mx-auto space-y-6">
         {/* Busca */}
-        <div className="mb-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+        <section>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+              <Search className="h-4 w-4" />
             </div>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por cliente, número ou ID..."
-              className="w-full pl-10 pr-4 py-3 text-sm border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground"
+              placeholder="CLIENTE, NÚMERO OU ID..."
+              className="w-full pl-11 pr-4 py-4 text-xs font-bold border border-input rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all bg-card text-foreground shadow-sm placeholder:text-muted-foreground/30"
             />
           </div>
-        </div>
+        </section>
 
-        <div className="mb-4">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {(['all', 'today', 'pendente', 'em_producao', 'pronto', 'overdue', 'entregue'] as StatusFilter[]).map((status) => (
-              <button
-                key={status}
-                onClick={() => handleSetStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${statusFilter === status
-                  ? 'bg-primary text-primary-foreground shadow-sm scale-105'
-                  : 'bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent'
-                  }`}
-              >
-                {status === 'all' ? '📋 Todos' :
-                  status === 'today' ? '📅 Hoje' :
-                    status === 'pendente' ? '⏳ Pendentes' :
-                      status === 'overdue' ? '⚠️ Atrasados' :
-                        status === 'em_producao' ? '🔧 Em Produção' :
-                          status === 'pronto' ? '✅ Pronto' :
-                            '📦 Entregues'}
-              </button>
-            ))}
+        {/* Filtros */}
+        <section>
+          <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5">
+            {(['all', 'today', 'pendente', 'em_producao', 'pronto', 'overdue', 'entregue'] as StatusFilter[]).map((status) => {
+              const Icon = statusIcons[status]
+              const isActive = statusFilter === status
+              return (
+                <button
+                  key={status}
+                  onClick={() => handleSetStatusFilter(status)}
+                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${isActive
+                    ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-105 z-10'
+                    : 'bg-card text-muted-foreground border-border hover:border-primary/50'
+                    }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-current' : 'text-primary'}`} />
+                  {status === 'all' ? 'Todos' :
+                    status === 'today' ? 'Hoje' :
+                      status === 'pendente' ? 'Pendentes' :
+                        status === 'overdue' ? 'Atrasados' :
+                          status === 'em_producao' ? 'Produção' :
+                            status === 'pronto' ? 'Prontos' :
+                              'Entregues'}
+                </button>
+              )
+            })}
           </div>
-        </div>
+        </section>
 
-        {/* Lista de pedidos */}
-        {loading ? (
-          <div className="text-center py-16">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent mb-3"></div>
-            <p className="text-sm text-muted-foreground">Carregando pedidos...</p>
-          </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-16 bg-card rounded-lg shadow-elevation border border-border">
-            <svg className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="text-sm font-medium text-foreground mb-1">Nenhum pedido encontrado</p>
-            <p className="text-xs text-muted-foreground">
-              {searchTerm || statusFilter !== 'all'
-                ? 'Tente ajustar os filtros de busca'
-                : 'Não há pedidos cadastrados ainda'}
-            </p>
-          </div>
-        ) : (
-          <div>
-            <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 mb-3">
-              <p className="text-xs font-semibold text-primary">
-                📊 {filteredOrders.length} {filteredOrders.length === 1 ? 'pedido encontrado' : 'pedidos encontrados'}
+        {/* Resultados */}
+        <section className="space-y-4">
+          {!loading && (
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  {filteredOrders.length} {filteredOrders.length === 1 ? 'Pedido Correspondente' : 'Pedidos Correspondentes'}
+                </p>
+              </div>
+              <ChevronRight className="w-3 h-3 text-muted-foreground/30" />
+            </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-20 flex flex-col items-center">
+              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Sincronizando Lista...</p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="text-center py-20 bg-card rounded-3xl border border-dashed border-border shadow-inner">
+              <div className="bg-accent/50 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-muted-foreground/20" />
+              </div>
+              <p className="text-sm font-black text-foreground mb-1 uppercase tracking-tight">Sem resultados</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+                Tente outros termos ou remova os filtros
               </p>
             </div>
-            <div className="space-y-3">
+          ) : (
+            <div className="space-y-4 pb-4">
               {filteredOrders.map((order) => (
                 <OrderCard key={order.id} order={order} />
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </section>
       </main>
 
       <BottomNav />
