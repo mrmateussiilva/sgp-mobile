@@ -27,29 +27,27 @@ O app estará disponível em `http://localhost:3000`
 
 ## 🔧 Configuração
 
-### API
+O app conecta-se diretamente à API para evitar complexidade com proxies e garantir compatibilidade máxima em PWA.
 
-A aplicação está configurada para usar um **proxy durante o desenvolvimento** que redireciona requisições de `/api` para `http://localhost:8000` (removendo o prefixo `/api`). Isso evita problemas de CORS.
+### Variáveis de Ambiente
 
-- **Desenvolvimento**: As requisições vão para `/api` (proxy do Vite remove o prefixo e redireciona para `http://localhost:8000`)
-- **Produção**: Configure a URL completa no arquivo `.env`:
+Para configurar a conexão, utilize as variáveis de ambiente no arquivo `.env` (ou nas configurações do seu provedor de deploy):
 
-```env
-VITE_API_URL=http://localhost:8000
-```
+| Variável | Descrição | Exemplo |
+| :--- | :--- | :--- |
+| `VITE_API_URL` | URL base do backend (sem prefixo /api) | `https://api.meusite.com` |
 
-**Importante**: Certifique-se de que sua API está rodando em `http://localhost:8000` antes de iniciar o app.
+> [!TIP]
+> Em modo de desenvolvimento (`pnpm run dev`), o app tentará se conectar por padrão ao IP `192.168.1.100:8000`. Você pode alterar isso na tela de fallback se necessário.
 
 ## 📱 Funcionalidades
 
 - ✅ Login com JWT
-- ✅ Dashboard com KPIs
-- ✅ Lista de pedidos com filtros
-- ✅ Busca por nome ou ID
-- ✅ Detalhes do pedido
-- ✅ Atualização de status
-- ✅ Relatórios (Envio, Fechamento, Vendas, Clientes, Produtos)
-- ✅ Área Administrativa (Usuários, Configurações, Backup, Logs, Sistema)
+- ✅ Dashboard com KPIs e atalhos rápidos
+- ✅ Lista de pedidos com filtros (Hoje, Pendentes, Produção)
+- ✅ Busca por nome, número ou ID
+- ✅ Detalhes do pedido (Modo Leitura)
+- ✅ Fallback de conexão com seleção de servidor (VPS / Local)
 - ✅ PWA instalável com Service Worker
 - ✅ Funcionamento offline
 - ✅ Atualizações automáticas
@@ -122,8 +120,25 @@ pnpm run preview
 
 ### Instalação no Dispositivo
 
-O PWA pode ser instalado em:
-- **Android**: Chrome mostrará prompt de instalação
-- **iOS**: Compartilhar → Adicionar à Tela de Início
 - **Desktop**: Chrome/Edge mostrará ícone de instalação na barra de endereços
+
+## 🚀 Deploy na Vercel
+
+O deploy deste projeto na Vercel é simples e otimizado para Vite.
+
+### Passo a Passo:
+
+1. Importe o repositório no [Vercel Dashboard](https://vercel.com/new).
+2. Na seção **Environment Variables**, adicione:
+   - `VITE_API_URL`: O endereço da sua API pública.
+3. Clique em **Deploy**.
+
+### Configurações Adicionais:
+- **Framework Preset**: Vite (detectado automaticamente)
+- **Build Command**: `pnpm run build`
+- **Output Directory**: `dist`
+- **Install Command**: `pnpm install`
+
+> [!IMPORTANT]
+> Certifique-se de que o backend configurado em `VITE_API_URL` tenha as permissões de **CORS** habilitadas para o domínio gerado pela Vercel.
 
