@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Orders } from './pages/Orders'
 import { OrderDetails } from './pages/OrderDetails'
 import { ApiConnectionFallback } from './pages/ApiConnectionFallback'
+import { SplashScreen } from './components/SplashScreen'
 import { useApiConnection } from './hooks/useApiConnection'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -106,6 +107,7 @@ function App() {
         v7_relativeSplatPath: true,
       }}
     >
+      <SplashScreen />
       <AppContent />
     </BrowserRouter>
   )
