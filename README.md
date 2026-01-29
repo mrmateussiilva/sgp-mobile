@@ -140,5 +140,8 @@ O deploy deste projeto na Vercel é simples e otimizado para Vite.
 - **Install Command**: `pnpm install`
 
 > [!IMPORTANT]
+> O arquivo `vercel.json` foi adicionado à raiz para garantir que todas as rotas (ex: `/login`, `/dashboard`) sejam redirecionadas para o `index.html`, evitando erros **404** ao recarregar a página.
+
+> [!CAUTION]
 > Certifique-se de que o backend configurado em `VITE_API_URL` tenha as permissões de **CORS** habilitadas para o domínio gerado pela Vercel.
 
