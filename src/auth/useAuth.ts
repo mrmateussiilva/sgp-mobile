@@ -20,11 +20,9 @@ export const useAuth = () => {
 
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
-      const response = await apiClient.post<any>(
-        '/auth/login',
-        credentials,
-        { skipAuth: true }
-      )
+      const response = await apiClient.postForm<any>('/auth/login', credentials, {
+        skipAuth: true,
+      })
 
       // Tenta diferentes formatos de resposta da API
       const token =
@@ -67,4 +65,3 @@ export const useAuth = () => {
     logout,
   }
 }
-

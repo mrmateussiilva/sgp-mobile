@@ -123,6 +123,25 @@ class ApiClient {
     })
   }
 
+  async postForm<T>(
+    endpoint: string,
+    data: Record<string, string>,
+    options?: RequestOptions
+  ): Promise<T> {
+    const formData = new URLSearchParams()
+    Object.entries(data).forEach(([key, value]) => formData.append(key, value))
+
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...(options?.headers as Record<string, string>),
+      },
+      body: formData.toString(),
+    })
+  }
+
   async patch<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
@@ -133,4 +152,3 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient()
-
