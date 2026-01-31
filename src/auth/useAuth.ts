@@ -20,7 +20,10 @@ export const useAuth = () => {
 
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
-      const response = await apiClient.postForm<any>('/auth/login', credentials, {
+      const response = await apiClient.postForm<any>('/auth/login', {
+        username: credentials.username,
+        password: credentials.password,
+      }, {
         skipAuth: true,
       })
 
