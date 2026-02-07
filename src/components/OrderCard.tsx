@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, MapPin, AlertCircle, Phone, DollarSign, Package, FileText, CheckCircle2, Circle, ChevronDown, ChevronUp, ImageIcon } from 'lucide-react'
+import { Calendar, MapPin, AlertCircle, Phone, DollarSign, Package, FileText, CheckCircle2, Circle, ChevronDown, ChevronUp } from 'lucide-react'
 import { Order } from '../hooks/useOrders'
 import { StatusBadge } from './StatusBadge'
 

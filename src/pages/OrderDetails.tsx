@@ -8,15 +8,12 @@ import {
   Info,
   Package,
   Truck,
-  DollarSign,
-  Factory,
   Calendar,
   MapPin,
   Image as ImageIcon,
   MessageSquare,
   CheckCircle2,
   ChevronDown,
-  ChevronUp,
   Tag
 } from 'lucide-react'
 
@@ -234,15 +231,16 @@ export const OrderDetails = () => {
     })
   }
 
-  const formatCurrency = (value?: string | null) => {
-    if (!value) return 'N/A'
-    const numValue = parseFloat(value)
-    if (isNaN(numValue)) return value
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(numValue)
-  }
+  // Removida: função formatCurrency não utilizada
+  // const formatCurrency = (value?: string | null) => {
+  //   if (!value) return 'N/A'
+  //   const numValue = parseFloat(value)
+  //   if (isNaN(numValue)) return value
+  //   return new Intl.NumberFormat('pt-BR', {
+  //     style: 'currency',
+  //     currency: 'BRL',
+  //   }).format(numValue)
+  // }
 
   if (loading) {
     return (
