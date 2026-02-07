@@ -33,6 +33,14 @@ export interface Order {
     imagem_url?: string | null
     [key: string]: any
   }>
+  itens?: Array<{
+    id?: number | null
+    descricao?: string | null
+    especificacoes?: string | null
+    observacoes?: string | null
+    imagem_url?: string | null
+    [key: string]: any
+  }>
   data_criacao: string
   ultima_atualizacao: string
 }

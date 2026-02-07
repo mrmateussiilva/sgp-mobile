@@ -4,14 +4,20 @@
 // URLs de Fallback pré-configuradas
 export const FALLBACK_URLS = {
   PUBLIC: 'https://api.vps-finderbit.com', // Exemplo de VPS
-  LOCAL: 'http://192.168.15.2:8000',      // IP da sua máquina
+  LOCAL: 'http://192.168.15.2:8004',      // IP da sua máquina
 }
 
 export const getApiBaseUrl = () => {
   // 1. Prioridade máxima: URL customizada manualmente pelo usuário (via Fallback UI)
   const customUrl = localStorage.getItem('api_url')
   if (customUrl) {
-    return customUrl
+    // CORREÇÃO: Se a URL salva for a antiga (porta 8000), limpa o cache para usar a nova (8004)
+    if (customUrl.includes(':8000')) {
+      console.warn('Removendo configuração antiga de API (porta 8000) do cache.')
+      localStorage.removeItem('api_url')
+    } else {
+      return customUrl
+    }
   }
 
   // 2. Segunda prioridade: Variável de ambiente (configurada no build)
@@ -27,7 +33,7 @@ export const getApiBaseUrl = () => {
   if (import.meta.env.DEV || import.meta.env.MODE === 'development' || isLocal || isIP) {
     // Se acessado por IP (celular na rede local), usa o mesmo IP para a API
     if (isIP) {
-      return `http://${hostname}:8000`
+      return `http://${hostname}:8004`
     }
     // Se localhost, usa o padrão local
     return FALLBACK_URLS.LOCAL
