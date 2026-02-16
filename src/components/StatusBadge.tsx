@@ -12,30 +12,50 @@ interface StatusBadgeProps {
   variant?: 'default' | 'contrast'
 }
 
-const statusConfig: Record<OrderStatus, { label: string; color: string; icon: any }> = {
+const statusConfig: Record<OrderStatus, { label: string; style: { backgroundColor: string; color: string; borderColor: string }; icon: any }> = {
   pendente: {
     label: 'Pendente',
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-900/50',
+    style: {
+      backgroundColor: '#FEF3C7',
+      color: '#92400E',
+      borderColor: '#FCD34D',
+    },
     icon: Clock,
   },
   em_producao: {
     label: 'Em Produção',
-    color: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-900/50',
+    style: {
+      backgroundColor: '#DBEAFE',
+      color: '#1E40AF',
+      borderColor: '#93C5FD',
+    },
     icon: Settings,
   },
   pronto: {
     label: 'Pronto',
-    color: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-900/50',
+    style: {
+      backgroundColor: '#EDE9FE',
+      color: '#5B21B6',
+      borderColor: '#C4B5FD',
+    },
     icon: CheckCircle2,
   },
   entregue: {
     label: 'Entregue',
-    color: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900/50',
+    style: {
+      backgroundColor: '#DCFCE7',
+      color: '#166534',
+      borderColor: '#86EFAC',
+    },
     icon: Package,
   },
   cancelado: {
     label: 'Cancelado',
-    color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50',
+    style: {
+      backgroundColor: '#FEE2E2',
+      color: '#991B1B',
+      borderColor: '#FCA5A5',
+    },
     icon: XCircle,
   },
 }
@@ -47,7 +67,8 @@ export const StatusBadge = ({ status, variant = 'default' }: StatusBadgeProps) =
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${config.color} ${contrastClass}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${contrastClass}`}
+      style={config.style}
     >
       <Icon className="w-3 h-3 mr-1" />
       {config.label}
