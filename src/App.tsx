@@ -7,6 +7,7 @@ import { OrderDetails } from './pages/OrderDetails'
 import { ApiConnectionFallback } from './pages/ApiConnectionFallback'
 import { SplashScreen } from './components/SplashScreen'
 import { useApiConnection } from './hooks/useApiConnection'
+import { useNetworkStatus } from './hooks/useNetworkStatus'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -57,11 +58,13 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 const AppContent = () => {
   const location = useLocation()
   const { isOnline } = useApiConnection()
+  const { isOnline: isNetworkOnline } = useNetworkStatus()
 
   // Mostra fallback apenas se:
   // 1. Está offline (isOnline === false)
   // 2. Não está na tela de login (permite tentar fazer login mesmo offline inicialmente)
-  const shouldShowFallback = isOnline === false && location.pathname !== '/login'
+  // 3. Navegador tem conexão com internet (se estiver sem internet, deixa a UI com dados locais)
+  const shouldShowFallback = isOnline === false && isNetworkOnline && location.pathname !== '/login'
 
   if (shouldShowFallback) {
     return <ApiConnectionFallback />
@@ -114,4 +117,3 @@ function App() {
 }
 
 export default App
-
