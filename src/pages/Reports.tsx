@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../auth/useAuth'
 import { apiClient } from '../api/client'
+import { formatDatePtBR, getCurrentMonthStartKeyLocal, getTodayKeyLocal } from '../utils/date'
 
 type ReportType = 'envio' | 'fechamento' | 'vendas' | 'clientes' | 'produtos'
 
@@ -16,8 +17,8 @@ export const Reports = () => {
   const [reportData, setReportData] = useState<ReportData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState({
-    start: new Date(new Date().setDate(1)).toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0],
+    start: getCurrentMonthStartKeyLocal(),
+    end: getTodayKeyLocal(),
   })
 
   const reportTypes: Array<{ type: ReportType; label: string; icon: string; description: string }> = [
@@ -80,8 +81,7 @@ export const Reports = () => {
   }
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString('pt-BR')
+    return formatDatePtBR(dateString)
   }
 
   return (
@@ -247,4 +247,3 @@ export const Reports = () => {
     </div>
   )
 }
-

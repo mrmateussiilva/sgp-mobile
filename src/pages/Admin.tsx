@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../auth/useAuth'
 import { apiClient } from '../api/client'
+import { formatDatePtBR } from '../utils/date'
 
 type AdminSection = 'users' | 'settings' | 'backup' | 'logs' | 'system'
 
@@ -65,8 +66,7 @@ export const Admin = () => {
   }
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    return formatDatePtBR(dateString, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -215,4 +215,3 @@ export const Admin = () => {
     </div>
   )
 }
-

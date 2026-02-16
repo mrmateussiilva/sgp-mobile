@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useOrders, Order } from '../hooks/useOrders'
 import { StatusBadge } from '../components/StatusBadge'
 import { BottomNav } from '../components/BottomNav'
+import { formatDatePtBR, parseApiDate } from '../utils/date'
 import {
   ArrowLeft,
   Info,
@@ -222,13 +223,11 @@ export const OrderDetails = () => {
   }, [id, getOrderById])
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Não definida'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('pt-BR', {
+    return formatDatePtBR(dateString, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
-    })
+    }, 'Não definida')
   }
 
   // Removida: função formatCurrency não utilizada
@@ -275,7 +274,8 @@ export const OrderDetails = () => {
 
   const isOverdue = () => {
     if (!order.data_entrega) return false
-    const deliveryDate = new Date(order.data_entrega)
+    const deliveryDate = parseApiDate(order.data_entrega)
+    if (!deliveryDate) return false
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     return deliveryDate < today && order.status !== 'entregue' && order.status !== 'cancelado'

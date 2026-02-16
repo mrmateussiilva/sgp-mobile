@@ -13,6 +13,7 @@ import { useOrders } from '../hooks/useOrders'
 import { OrderCard } from '../components/OrderCard'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../auth/useAuth'
+import { getDateKey, getTodayKeyLocal, parseApiDate } from '../utils/date'
 
 export const Dashboard = () => {
   const navigate = useNavigate()
@@ -23,10 +24,10 @@ export const Dashboard = () => {
     const total = orders.length
     const pending = orders.filter(o => o.status === 'pendente').length
 
-    const todayStr = new Date().toISOString().split('T')[0]
+    const todayStr = getTodayKeyLocal()
     const dueToday = orders.filter(order => {
       if (!order.data_entrega) return false
-      return order.data_entrega.startsWith(todayStr) &&
+      return getDateKey(order.data_entrega) === todayStr &&
         order.status !== 'entregue' &&
         order.status !== 'cancelado'
     }).length
@@ -37,8 +38,8 @@ export const Dashboard = () => {
   const recentOrders = useMemo(() => {
     return orders
       .sort((a, b) => {
-        const dateA = a.data_entrega ? new Date(a.data_entrega).getTime() : 0
-        const dateB = b.data_entrega ? new Date(b.data_entrega).getTime() : 0
+        const dateA = a.data_entrega ? (parseApiDate(a.data_entrega)?.getTime() ?? 0) : 0
+        const dateB = b.data_entrega ? (parseApiDate(b.data_entrega)?.getTime() ?? 0) : 0
         return dateB - dateA
       })
       .slice(0, 5)
@@ -169,7 +170,7 @@ export const Dashboard = () => {
           ) : (
             <div className="space-y-4">
               {recentOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
+                <OrderCard key={order.id} order={order} variant="compact" />
               ))}
             </div>
           )}
@@ -180,4 +181,3 @@ export const Dashboard = () => {
     </div>
   )
 }
-

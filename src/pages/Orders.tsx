@@ -4,6 +4,7 @@ import { useOrders, OrderStatus } from '../hooks/useOrders'
 import { OrderCard } from '../components/OrderCard'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../auth/useAuth'
+import { getDateKey, getTodayKeyLocal, parseApiDate } from '../utils/date'
 import {
   Search,
   RefreshCw,
@@ -54,16 +55,17 @@ export const Orders = () => {
       today.setHours(0, 0, 0, 0)
       filtered = filtered.filter(order => {
         if (!order.data_entrega) return false
-        const deliveryDate = new Date(order.data_entrega)
+        const deliveryDate = parseApiDate(order.data_entrega)
+        if (!deliveryDate) return false
         return deliveryDate < today &&
           order.status !== 'entregue' &&
           order.status !== 'cancelado'
       })
     } else if (statusFilter === 'today') {
-      const todayStr = new Date().toISOString().split('T')[0]
+      const todayStr = getTodayKeyLocal()
       filtered = filtered.filter(order => {
         if (!order.data_entrega) return false
-        return order.data_entrega.startsWith(todayStr) &&
+        return getDateKey(order.data_entrega) === todayStr &&
           order.status !== 'entregue' &&
           order.status !== 'cancelado'
       })
@@ -82,8 +84,8 @@ export const Orders = () => {
     }
 
     return filtered.sort((a, b) => {
-      const dateA = a.data_entrega ? new Date(a.data_entrega).getTime() : 0
-      const dateB = b.data_entrega ? new Date(b.data_entrega).getTime() : 0
+      const dateA = a.data_entrega ? (parseApiDate(a.data_entrega)?.getTime() ?? 0) : 0
+      const dateB = b.data_entrega ? (parseApiDate(b.data_entrega)?.getTime() ?? 0) : 0
       return dateB - dateA
     })
   }, [orders, statusFilter, searchTerm])
@@ -207,7 +209,7 @@ export const Orders = () => {
           ) : (
             <div className="space-y-4 pb-4">
               {filteredOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
+                <OrderCard key={order.id} order={order} variant="detailed" />
               ))}
             </div>
           )}
@@ -218,4 +220,3 @@ export const Orders = () => {
     </div>
   )
 }
-
