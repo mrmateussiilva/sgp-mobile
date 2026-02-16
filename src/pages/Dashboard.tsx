@@ -6,7 +6,6 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Plus,
   WifiOff,
 } from 'lucide-react'
 import { useOrders } from '../hooks/useOrders'
@@ -81,11 +80,11 @@ export const Dashboard = () => {
             <button
               onClick={() => navigate('/orders')}
               className="h-9 px-3 bg-primary text-primary-foreground rounded-xl text-[10px] font-black tracking-wide inline-flex items-center gap-1.5 shadow-lg shadow-primary/20 active:scale-95"
-              aria-label="Novo pedido"
+              aria-label="Ver pedidos"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span className="hidden min-[360px]:inline">Novo pedido</span>
-              <span className="min-[360px]:hidden">Novo</span>
+              <ClipboardList className="w-3.5 h-3.5" />
+              <span className="hidden min-[360px]:inline">Ver pedidos</span>
+              <span className="min-[360px]:hidden">Pedidos</span>
             </button>
             <button
               onClick={logout}
@@ -198,14 +197,14 @@ export const Dashboard = () => {
             <div className="text-center py-10 bg-card rounded-2xl border border-dashed border-border">
               <ClipboardList className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
               <p className="text-xs font-bold uppercase text-foreground">Nenhum pedido recente</p>
-              <p className="text-[10px] text-muted-foreground font-semibold mt-1">Crie seu primeiro pedido para começar</p>
+              <p className="text-[10px] text-muted-foreground font-semibold mt-1">Acompanhe os pedidos pela listagem completa</p>
               <button
                 onClick={() => navigate('/orders')}
                 className="mt-4 h-9 px-3 bg-primary text-primary-foreground rounded-xl text-[10px] font-black tracking-wide inline-flex items-center gap-1.5 active:scale-95"
-                aria-label="Criar novo pedido"
+                aria-label="Abrir listagem de pedidos"
               >
-                <Plus className="w-3.5 h-3.5" />
-                Novo pedido
+                <ClipboardList className="w-3.5 h-3.5" />
+                Ver pedidos
               </button>
             </div>
           ) : (

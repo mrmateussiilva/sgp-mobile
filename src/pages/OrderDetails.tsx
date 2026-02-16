@@ -10,10 +10,10 @@ import {
   Package,
   Truck,
   Calendar,
+  DollarSign,
   MapPin,
   Image as ImageIcon,
   MessageSquare,
-  CheckCircle2,
   ChevronDown,
   Tag
 } from 'lucide-react'
@@ -21,6 +21,7 @@ import {
 // Componente Accordion para Itens do Pedido - Visual Ficha Técnica
 const OrderItemDetailAccordion = ({ item, isLast }: { item: any, isLast: boolean }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const toggleAccordion = () => setIsOpen(!isOpen)
 
   // Filtra propriedades dinâmicas para exibição
   const dynamicProps = Object.entries(item).filter(([key, value]) => {
@@ -44,7 +45,16 @@ const OrderItemDetailAccordion = ({ item, isLast }: { item: any, isLast: boolean
     <div className={`group transition-all duration-300 ${!isLast ? 'border-b border-border/40' : ''}`}>
       {/* Cabeçalho do Item (Sempre visível) */}
       <div 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleAccordion}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            toggleAccordion()
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isOpen}
         className="py-4 flex items-start gap-4 cursor-pointer active:opacity-70"
       >
         {/* Thumb */}
@@ -230,16 +240,15 @@ export const OrderDetails = () => {
     }, 'Não definida')
   }
 
-  // Removida: função formatCurrency não utilizada
-  // const formatCurrency = (value?: string | null) => {
-  //   if (!value) return 'N/A'
-  //   const numValue = parseFloat(value)
-  //   if (isNaN(numValue)) return value
-  //   return new Intl.NumberFormat('pt-BR', {
-  //     style: 'currency',
-  //     currency: 'BRL',
-  //   }).format(numValue)
-  // }
+  const formatCurrency = (value?: string | null) => {
+    if (!value) return 'R$ 0,00'
+    const numValue = parseFloat(value)
+    if (isNaN(numValue)) return value
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(numValue)
+  }
 
   if (loading) {
     return (
@@ -283,28 +292,38 @@ export const OrderDetails = () => {
 
   const displayId = order.numero || `#${order.id}`
   const orderItems = order.items || order.itens || []
+  const sectors = [
+    { key: 'setor_financeiro', label: 'Financeiro' },
+    { key: 'setor_conferencia', label: 'Conferência' },
+    { key: 'setor_sublimacao', label: 'Sublimação' },
+    { key: 'setor_costura', label: 'Costura' },
+    { key: 'setor_expedicao', label: 'Expedição' },
+  ] as const
+  const completedSectors = sectors.filter((sector) => Boolean((order as any)[sector.key])).length
+  const progressPercent = Math.round((completedSectors / sectors.length) * 100)
 
   return (
-    <div className="min-h-screen pb-28 bg-background">
-      <header className="bg-card sticky top-0 z-40 border-b border-border shadow-sm">
-        <div className="px-4 py-4 flex items-center max-w-7xl mx-auto">
+    <div className="min-h-screen pb-[calc(6rem+env(safe-area-inset-bottom))] bg-background">
+      <header className="bg-card/95 backdrop-blur sticky top-0 z-40 border-b border-border shadow-sm">
+        <div className="px-4 py-2.5 flex items-center max-w-7xl mx-auto">
           <button
             onClick={() => navigate(-1)}
-            className="mr-4 p-2.5 bg-accent/50 text-foreground hover:bg-accent rounded-xl transition-all active:scale-90"
+            className="mr-3 p-2 bg-accent/50 text-foreground hover:bg-accent rounded-xl transition-all active:scale-90"
+            aria-label="Voltar"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-extrabold text-foreground tracking-tight truncate">DETALHES DO PEDIDO</h1>
+              <h1 className="text-sm font-extrabold text-foreground tracking-tight truncate">Detalhes do pedido</h1>
               <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded">{displayId}</span>
             </div>
-            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Informações operacionais</p>
+            <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Informações operacionais</p>
           </div>
         </div>
       </header>
 
-      <main className="px-4 py-6 max-w-3xl mx-auto space-y-6">
+      <main className="px-4 py-4 max-w-3xl mx-auto space-y-4">
         {message && (
           <div className={`p-4 rounded-xl flex items-center gap-3 border ${message.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-600' : 'bg-destructive/10 border-destructive/20 text-destructive'}`}>
             <Info className="w-4 h-4 flex-shrink-0" />
@@ -313,52 +332,90 @@ export const OrderDetails = () => {
         )}
 
         {/* Card Principal - Resumo */}
-        <section className="bg-card rounded-3xl shadow-sm border border-border p-6 relative overflow-hidden">
+        <section className="bg-card rounded-2xl shadow-sm border border-border p-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
              <Package className="w-32 h-32" />
           </div>
           
-          <div className="flex justify-between items-start mb-6 relative z-10">
+          <div className="flex justify-between items-start mb-3 relative z-10">
             <div className="flex-1 min-w-0">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Cliente</label>
-              <h2 className="text-2xl font-black text-foreground uppercase truncate leading-none tracking-tight">{order.cliente}</h2>
+              <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1">Cliente</label>
+              <h2 className="text-lg font-black text-foreground uppercase truncate leading-none tracking-tight">{order.cliente}</h2>
             </div>
-            <div className="ml-4 flex-shrink-0">
-              <StatusBadge status={order.status} />
+            <div className="ml-3 flex-shrink-0">
+              <StatusBadge status={order.status} variant="contrast" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-border/50 relative z-10">
-            <div className="flex items-center space-x-3 bg-accent/20 p-3 rounded-2xl">
-              <div className="bg-primary/10 p-2.5 rounded-xl">
-                <Calendar className={`w-5 h-5 ${isOverdue() ? 'text-destructive' : 'text-primary'}`} />
+          <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50 relative z-10">
+            <div className="rounded-xl bg-accent/30 p-2.5">
+              <div className="inline-flex items-center gap-1.5">
+                <Calendar className={`w-3.5 h-3.5 ${isOverdue() ? 'text-destructive' : 'text-primary'}`} />
+                <label className="text-[9px] font-bold uppercase text-muted-foreground">Entrega</label>
               </div>
-              <div className="flex-1 min-w-0">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground block">Entrega</label>
-                <div className="flex items-center gap-2">
-                  <p className={`text-sm font-black uppercase ${isOverdue() ? 'text-destructive' : 'text-foreground'}`}>
-                    {formatDate(order.data_entrega)}
-                  </p>
-                  {isOverdue() && (
-                    <span className="text-[9px] font-black bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-md">
-                      ATRASADO
-                    </span>
-                  )}
-                </div>
-              </div>
+              <p className={`text-[11px] font-black mt-1 truncate ${isOverdue() ? 'text-destructive' : 'text-foreground'}`}>
+                {formatDate(order.data_entrega)}
+              </p>
             </div>
 
-            {order.cidade_cliente && (
-              <div className="flex items-center space-x-3 bg-accent/20 p-3 rounded-2xl">
-                <div className="bg-primary/10 p-2.5 rounded-xl">
-                  <MapPin className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground block">Local</label>
-                  <p className="text-sm font-black uppercase text-foreground truncate">{order.cidade_cliente}</p>
-                </div>
+            <div className="rounded-xl bg-accent/30 p-2.5">
+              <div className="inline-flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-green-600" />
+                <label className="text-[9px] font-bold uppercase text-muted-foreground">Total</label>
               </div>
-            )}
+              <p className="text-[11px] font-black mt-1 truncate text-foreground">{formatCurrency(order.valor_total)}</p>
+            </div>
+
+            <div className="rounded-xl bg-accent/30 p-2.5">
+              <div className="inline-flex items-center gap-1.5">
+                <Package className="w-3.5 h-3.5 text-blue-600" />
+                <label className="text-[9px] font-bold uppercase text-muted-foreground">Itens</label>
+              </div>
+              <p className="text-[11px] font-black mt-1 text-foreground">{orderItems.length}</p>
+            </div>
+          </div>
+
+          {isOverdue() && (
+            <div className="mt-2 text-[9px] font-black uppercase text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-2 py-1 inline-flex">
+              Entrega atrasada
+            </div>
+          )}
+
+          {order.cidade_cliente && (
+            <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <MapPin className="w-3.5 h-3.5 text-primary" />
+              <span className="truncate uppercase">
+                {order.cidade_cliente} {order.estado_cliente ? `- ${order.estado_cliente}` : ''}
+              </span>
+            </div>
+          )}
+        </section>
+
+        <section className="bg-card rounded-2xl shadow-sm border border-border p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-foreground">Produção</h3>
+            <p className="text-[10px] font-black text-foreground">{completedSectors}/{sectors.length}</p>
+          </div>
+          <div className="h-2 rounded-full bg-accent/80 overflow-hidden mb-3">
+            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progressPercent}%` }} />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {sectors.map((sector) => {
+              const isOk = Boolean((order as any)[sector.key])
+              return (
+                <div
+                  key={sector.key}
+                  className={`px-2 py-1 rounded-full border text-[9px] font-black uppercase ${
+                    isOk
+                      ? 'bg-green-500/10 text-green-700 border-green-500/20'
+                      : 'bg-accent/50 text-muted-foreground border-border/60'
+                  }`}
+                >
+                  {sector.label}
+                </div>
+              )
+            })}
           </div>
         </section>
 
@@ -374,7 +431,7 @@ export const OrderDetails = () => {
             </div>
           </div>
 
-          <div className="bg-card rounded-3xl shadow-sm border border-border px-6 py-2">
+          <div className="bg-card rounded-2xl shadow-sm border border-border px-4 py-2">
             {orderItems.length > 0 ? (
               orderItems.map((item, index) => (
                 <OrderItemDetailAccordion 
@@ -403,29 +460,6 @@ export const OrderDetails = () => {
           </section>
         )}
 
-        {/* Status de Produção (Simplificado) */}
-        {(order.setor_financeiro || order.setor_conferencia || order.setor_sublimacao || order.setor_costura || order.setor_expedicao) && (
-          <section className="pt-4 border-t border-dashed border-border/50">
-             <div className="flex flex-wrap gap-2 justify-center">
-              {[
-                { key: 'setor_financeiro', label: 'FINANCEIRO' },
-                { key: 'setor_conferencia', label: 'CONFERÊNCIA' },
-                { key: 'setor_sublimacao', label: 'SUBLIMAÇÃO' },
-                { key: 'setor_costura', label: 'COSTURA' },
-                { key: 'setor_expedicao', label: 'EXPEDIÇÃO' },
-              ].map((sector) => {
-                const isOk = (order as any)[sector.key]
-                if (!isOk) return null
-                return (
-                  <div key={sector.key} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 text-green-700 rounded-full border border-green-500/20">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span className="text-[10px] font-black uppercase">{sector.label}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
       </main>
 
       <BottomNav />
