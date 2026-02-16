@@ -9,6 +9,7 @@ import {
 
 interface StatusBadgeProps {
   status: OrderStatus
+  variant?: 'default' | 'contrast'
 }
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: any }> = {
@@ -39,17 +40,17 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; icon: an
   },
 }
 
-export const StatusBadge = ({ status }: StatusBadgeProps) => {
+export const StatusBadge = ({ status, variant = 'default' }: StatusBadgeProps) => {
   const config = statusConfig[status]
   const Icon = config.icon
+  const contrastClass = variant === 'contrast' ? 'shadow-sm ring-1 ring-black/5 dark:ring-white/10' : ''
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${config.color}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${config.color} ${contrastClass}`}
     >
       <Icon className="w-3 h-3 mr-1" />
       {config.label}
     </span>
   )
 }
-
